@@ -7,7 +7,7 @@ app.use(cors());
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 require("./mood");
-const mood=mongoose.model("Mood")
+const Mood=mongoose.model("Mood")
 
 // MongoDB connection string
 const mongourl = "mongodb+srv://database1:anisha25mongo@cluster0.8djrk.mongodb.net/mental-health";
