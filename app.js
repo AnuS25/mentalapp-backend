@@ -6,6 +6,8 @@ const cors = require("cors");
 app.use(cors());
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+require("./mood");
+const mood=mongoose.model("Mood")
 
 // MongoDB connection string
 const mongourl = "mongodb+srv://database1:anisha25mongo@cluster0.8djrk.mongodb.net/mental-health";
@@ -116,6 +118,37 @@ app.post("/userdata", async (req, res) => {
   }
 });
 
+// const jwt = require('jsonwebtoken');
+
+const verifyToken = (req, res, next) => {
+  const token = req.headers['authorization']?.split(' ')[1]; // "Bearer token"
+  if (!token) {
+    return res.status(403).json({ error: 'No token provided' });
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    req.userId = decoded.userId; // Set user ID from the decoded token
+    next();
+  });
+};
+
+
+app.post('/moods',verifyToken, async (req, res) => {
+  console.log('Route /moods hit');
+   const { mood } = req.body;
+  const userId = req.userId; 
+  try {
+    //const { userId, mood } = req.body;
+    const newMood = new Mood({ userId, mood });
+    await newMood.save();
+    res.status(201).json({ message: 'Mood saved successfully' });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to save mood' });
+  }
+});
 
 // app.post("/userdata",async(req,res)=>{
 //   const {token}=req.body;
