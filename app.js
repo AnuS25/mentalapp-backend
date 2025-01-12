@@ -138,9 +138,9 @@ const verifyToken = (req, res, next) => {
 
 app.post('/moods',verifyToken, async (req, res) => {
   console.log('Route /moods hit');
-   //const { mood } = req.body;
+   const { mood } = req.body;
   const userId = req.userId;
-  const mood='Happy';
+  //const mood='Happy';
   try {
     //const { userId, mood } = req.body;
     const newMood = new Mood({ userId, mood });
