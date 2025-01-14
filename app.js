@@ -120,20 +120,7 @@ app.post("/userdata", async (req, res) => {
 
 // const jwt = require('jsonwebtoken');
 
-const verifyToken = (req, res, next) => {
-  const token = req.headers['authorization']?.split(' ')[1]; // "Bearer token"
-  if (!token) {
-    return res.status(403).json({ error: 'No token provided' });
-  }
 
-  jwt.verify(token, JWT_SECRET, (err, decoded) => {
-    if (err) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-    req.userId = decoded.userId; // Set user ID from the decoded token
-    next();
-  });
-};
 
 
 // app.post('/moods',verifyToken, async (req, res) => {
@@ -149,13 +136,27 @@ const verifyToken = (req, res, next) => {
 //     res.status(500).json({ error: 'Failed to save mood' });
 //   }
 // });
-app.post('/moods', async (req, res) => {
-  const { userId, mood, note } = req.body;
+app.post('/moods',verifyToken, async (req, res) => {
+  const { mood, note } = req.body;
+  //const userEmail = req.userEmail;
+  const { token } = req.headers; 
   try {
+     const decodedUser = jwt.verify(token, JWT_SECRET);  // Decode the JWT
+    const userEmail = decodedUser.email;  // Get user email from the decoded token
+
+    const user = await user.findOne({ email: userEmail });
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    //const userId = user._id; // Extract userId from the user document
+
     const newMood = new Mood({ 
-      userId:userId,
-       mood:mood, 
-       note:note });
+      //userId:userId,
+      //  mood:mood, 
+      //  note:note 
+      mood,note});
     await newMood.save();
     //res.status(201).json(newMood);
      res.send({ status: "ok", message: "Mood saved successfully" });
