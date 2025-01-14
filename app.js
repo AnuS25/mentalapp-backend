@@ -140,7 +140,11 @@ const verifyToken = (req, res, next) => {
 
 app.post('/moods', async (req, res) => {
   const { mood, note } = req.body;
-  const { token } = req.headers;
+  //const { token } = req.headers;
+const token = req.headers['authorization']?.split(' ')[1];
+  if (!token) {
+    return res.status(403).json({ error: 'No token provided' });
+  }
 
   try {
     const decodedUser = jwt.verify(token, JWT_SECRET);  // Decode the JWT token
