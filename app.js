@@ -159,8 +159,8 @@ const token = req.headers['authorization']?.split(' ')[1];
 
     // Create a new mood document, making sure to include the userEmail
     const newMood = new Mood({ 
-      mood,
-      note,
+      mood:req.body.mood,
+      note:req.body.note,
       userEmail,  // Add the userEmail field to the newMood object
     });
 
