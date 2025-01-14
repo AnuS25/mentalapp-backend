@@ -136,7 +136,7 @@ app.post("/userdata", async (req, res) => {
 //     res.status(500).json({ error: 'Failed to save mood' });
 //   }
 // });
-app.post('/moods',verifyToken, async (req, res) => {
+app.post('/moods', async (req, res) => {
   const { mood, note } = req.body;
   //const userEmail = req.userEmail;
   const { token } = req.headers; 
