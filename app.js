@@ -151,34 +151,33 @@ const verifyToken = (req, res, next) => {
 //     res.status(500).json({ error: 'Failed to save mood' });
 //   }
 // });
-app.post('/moods', async (req, res) => {
+app.post('/moods', verifyToken, async (req, res) => {
   const { mood, note } = req.body;
-  //const userEmail = req.userEmail;
-  const { token } = req.headers; 
-  try {
-     const decodedUser = jwt.verify(token, JWT_SECRET);  // Decode the JWT
-    const userEmail = decodedUser.email;  // Get user email from the decoded token
+  const userEmail = req.userEmail;
 
+  // Log the mood value to check what is being passed
+  console.log('Received mood:', mood);
+
+  try {
     const user = await user.findOne({ email: userEmail });
 
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    //const userId = user._id; // Extract userId from the user document
+    const newMood = new Mood({
+      mood: mood,
+      note: note,
+    });
 
-    const newMood = new Mood({ 
-      //userId:userId,
-      //  mood:mood, 
-      //  note:note 
-      mood,note});
     await newMood.save();
-    //res.status(201).json(newMood);
-     res.send({ status: "ok", message: "Mood saved successfully" });
+    res.send({ status: "ok", message: "Mood saved successfully" });
   } catch (error) {
+    console.error('Error saving mood:', error);  // Log the error
     res.status(500).json({ error: 'Failed to save mood' });
   }
 });
+
 // app.post("/userdata",async(req,res)=>{
 //   const {token}=req.body;
 //   try{
