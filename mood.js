@@ -10,9 +10,13 @@
 const mongoose = require('mongoose');
 
 const moodSchema = new mongoose.Schema({
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'userinfo', // References the User model
+  // userId: {
+  //   type: mongoose.Schema.Types.ObjectId,
+  //   ref: 'userinfo', // References the User model
+  //   required: true,
+  // },
+  userEmail: {
+    type: String,  // Store email directly
     required: true,
   },
   mood: {
