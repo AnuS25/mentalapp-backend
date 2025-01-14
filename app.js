@@ -138,29 +138,34 @@ const verifyToken = (req, res, next) => {
 
 app.post('/moods', async (req, res) => {
   const { mood, note } = req.body;
-  //const userEmail = req.userEmail;
-  const { token } = req.headers; 
-  try {
-     const decodedUser = jwt.verify(token, JWT_SECRET);  // Decode the JWT
-    const userEmail = decodedUser.email;  // Get user email from the decoded token
+  const { token } = req.headers;
 
+  try {
+    const decodedUser = jwt.verify(token, JWT_SECRET);  // Decode the JWT token
+    const userEmail = decodedUser.email;  // Get the user email from the decoded token
+
+    // Find the user in the database
     const UserData = await user.findOne({ email: userEmail });
 
     if (!UserData) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    //const userId = user._id; // Extract userId from the user document
-
+    // Create a new mood document, making sure to include the userEmail
     const newMood = new Mood({ 
-      //userId:userId,
-      //  mood:mood, 
-      //  note:note 
-      mood,note,userEmail});
+      mood,
+      note,
+      userEmail,  // Add the userEmail field to the newMood object
+    });
+
+    // Save the mood to the database
     await newMood.save();
-    //res.status(201).json(newMood);
-     res.send({ status: "ok", message: "Mood saved successfully" });
+
+    // Return a success response
+    res.send({ status: "ok", message: "Mood saved successfully" });
+
   } catch (error) {
+    console.error('Error saving mood:', error);  // Log the error
     res.status(500).json({ error: 'Failed to save mood' });
   }
 });
