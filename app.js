@@ -136,21 +136,33 @@ const verifyToken = (req, res, next) => {
 };
 
 
-app.post('/moods',verifyToken, async (req, res) => {
-  console.log('Route /moods hit');
-   const { mood } = req.body;
-  const userId = req.userId;
-  //const mood='Happy';
+// app.post('/moods',verifyToken, async (req, res) => {
+//   console.log('Route /moods hit');
+//    const { mood } = req.body;
+//   const userId = req.userId; 
+//   try {
+//     //const { userId, mood } = req.body;
+//     const newMood = new Mood({ userId, mood });
+//     await newMood.save();
+//     res.status(201).json({ message: 'Mood saved successfully' });
+//   } catch (error) {
+//     res.status(500).json({ error: 'Failed to save mood' });
+//   }
+// });
+app.post('/moods', async (req, res) => {
+  const { userId, mood, note } = req.body;
   try {
-    //const { userId, mood } = req.body;
-    const newMood = new Mood({ userId, mood });
+    const newMood = new Mood({ 
+      userId:userId,
+       mood:mood, 
+       note:note });
     await newMood.save();
-    res.status(201).json({ message: 'Mood saved successfully' });
+    //res.status(201).json(newMood);
+     res.send({ status: "ok", message: "Mood saved successfully" });
   } catch (error) {
     res.status(500).json({ error: 'Failed to save mood' });
   }
 });
-
 // app.post("/userdata",async(req,res)=>{
 //   const {token}=req.body;
 //   try{
