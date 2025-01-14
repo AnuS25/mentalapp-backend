@@ -202,6 +202,12 @@ app.post('/moods', async (req, res) => {
 //   }
 // });
 
+app.post('/logout', verifyToken, (req, res) => {
+    // Invalidate token on the frontend by deleting it (done in the frontend)
+    // Backend could also have a token blacklist to invalidate tokens server-side
+
+    res.json({ success: true, message: 'Logged out successfully' });
+});
 
 app.listen(5001, () => {
   console.log("Node.js server started on port 5001");
