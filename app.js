@@ -159,9 +159,9 @@ app.post('/moods', verifyToken, async (req, res) => {
   console.log('Received mood:', mood);
 
   try {
-    const user = await user.findOne({ email: userEmail });
+    const UserData = await user.findOne({ email: userEmail });
 
-    if (!user) {
+    if (!UserData) {
       return res.status(404).json({ error: 'User not found' });
     }
 
