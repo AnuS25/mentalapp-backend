@@ -8,7 +8,7 @@ const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 require("./mood");
 const Mood=mongoose.model("Mood")
-
+const Menu=require('./menu')
 // MongoDB connection string
 const mongourl = "mongodb+srv://database1:anisha25mongo@cluster0.8djrk.mongodb.net/mental-health";
 const JWT_SECRET = "abcdefgh[12345][6789]<>ijkl;/mnopqrstu";
@@ -122,8 +122,6 @@ app.post("/userdata", async (req, res) => {
 
 const verifyToken = (req, res, next) => {
   const token = req.headers['authorization']?.split(' ')[1]; // "Bearer token"
-  console.log(req.headers['authorization']);  // Log the header
-
   if (!token) {
     return res.status(403).json({ error: 'No token provided' });
   }
@@ -138,44 +136,6 @@ const verifyToken = (req, res, next) => {
 };
 
 
-app.post('/moods', async (req, res) => {
-  const { mood, note } = req.body;
-  //const { token } = req.headers;
-const token = req.headers['authorization']?.split(' ')[1];
-  if (!token) {
-    return res.status(403).json({ error: 'No token provided' });
-  }
-
-  try {
-    const decodedUser = jwt.verify(token, JWT_SECRET);  // Decode the JWT token
-    const userEmail = decodedUser.email;  // Get the user email from the decoded token
-
-    // Find the user in the database
-    const UserData = await user.findOne({ email: userEmail });
-
-    if (!UserData) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    // Create a new mood document, making sure to include the userEmail
-    const newMood = new Mood({ 
-      mood:req.body.mood,
-      note:req.body.note,
-      userEmail,  // Add the userEmail field to the newMood object
-    });
-
-    // Save the mood to the database
-    await newMood.save();
-
-    // Return a success response
-    res.send({ status: "ok", message: "Mood saved successfully" });
-
-  } catch (error) {
-    console.error('Error saving mood:', error);  // Log the error
-    res.status(500).json({ error: 'Failed to save mood' });
-  }
-});
-
 // app.post('/moods',verifyToken, async (req, res) => {
 //   console.log('Route /moods hit');
 //    const { mood } = req.body;
@@ -189,7 +149,34 @@ const token = req.headers['authorization']?.split(' ')[1];
 //     res.status(500).json({ error: 'Failed to save mood' });
 //   }
 // });
+app.post('/moods', async (req, res) => {
+  const { mood, note } = req.body;
+  //const userEmail = req.userEmail;
+  const { token } = req.headers; 
+  try {
+     const decodedUser = jwt.verify(token, JWT_SECRET);  // Decode the JWT
+    const userEmail = decodedUser.email;  // Get user email from the decoded token
 
+    const UserData = await user.findOne({ email: userEmail });
+
+    if (!UserData) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    //const userId = user._id; // Extract userId from the user document
+
+    const newMood = new Mood({ 
+      //userId:userId,
+      //  mood:mood, 
+      //  note:note 
+      mood,note,userEmail});
+    await newMood.save();
+    //res.status(201).json(newMood);
+     res.send({ status: "ok", message: "Mood saved successfully" });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to save mood' });
+  }
+});
 // app.post("/userdata",async(req,res)=>{
 //   const {token}=req.body;
 //   try{
@@ -228,7 +215,77 @@ const token = req.headers['authorization']?.split(' ')[1];
 //     res.status(500).json({ success: false, message: 'Server error.' });
 //   }
 // });
+app.post('/menu/addDish', async (req, res) => {
+  try {
+    const {date, name, type, mealType} = req.body;
 
+    let menuItem = await Menu.findOne({date});
+
+    if (!menuItem) {
+      menuItem = new Menu({date});
+    }
+
+    menuItem.items.push({name, type, mealType});
+
+    await menuItem.save();
+  } catch (error) {
+    console.log('Error', error);
+    res.status(500).json({message: 'Internal server error'});
+  }
+});
+
+app.get('/menu/all', async (req, res) => {
+  try {
+    const allMenuData = await Menu.find({});
+
+    if (!allMenuData || allMenuData.length == 0) {
+      return res.status(200).json([]);
+    }
+
+    res.status(200).json(allMenuData);
+  } catch (error) {
+    res.status(500).json({error: 'Internal server error'});
+  }
+});
+
+app.post('/copyItems', async (req, res) => {
+  try {
+    const {prevDate, nextDate} = req.body;
+
+    const prevMenu = await Menu.findOne({date: prevDate});
+    if (!prevMenu) {
+      return res.status(500).json({message: 'Previous date not found'});
+    }
+
+    let nextMenu = await Menu.findOne({date: nextDate});
+    if (!nextMenu) {
+      nextMenu = new Menu({date: nextDate, items: prevMenu.items});
+    } else {
+      nextMenu.items = prevMenu.items;
+    }
+
+    await nextMenu.save();
+
+    res.status(200).json({message: 'items copied'});
+  } catch (error) {
+    res.status(500).json({message: 'Internal server error'});
+  }
+});
+
+app.delete('/deleteItems/:date', async (req, res) => {
+  const dateToDelete = req.params.date;
+
+  try {
+    const deletedItem = await Menu.findOneAndDelete({date: dateToDelete});
+    if (deletedItem) {
+      res.status(200).json({message: 'Item deleted'});
+    } else {
+      res.status(404).json({message: 'error deleting the items'});
+    }
+  } catch (error) {
+    res.status(500).json({message: 'Internal server error'});
+  }
+});
 app.post('/logout', verifyToken, (req, res) => {
     // Invalidate token on the frontend by deleting it (done in the frontend)
     // Backend could also have a token blacklist to invalidate tokens server-side
