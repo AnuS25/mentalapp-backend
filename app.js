@@ -272,20 +272,59 @@ app.post('/copyItems', async (req, res) => {
   }
 });
 
-app.delete('/deleteItems/:date', async (req, res) => {
-  const dateToDelete = req.params.date;
+// app.delete('/deleteItems/:date', async (req, res) => {
+//   const dateToDelete = req.params.date;
 
+//   try {
+//     const deletedItem = await Menu.findOneAndDelete({date: dateToDelete});
+//     if (deletedItem) {
+//       res.status(200).json({message: 'Item deleted'});
+//     } else {
+//       res.status(404).json({message: 'error deleting the items'});
+//     }
+//   } catch (error) {
+//     res.status(500).json({message: 'Internal server error'});
+//   }
+// });;
+
+
+app.delete('/deleteItems/:date', async (req, res) => {
   try {
-    const deletedItem = await Menu.findOneAndDelete({date: dateToDelete});
+    // Decode the date parameter to ensure proper comparison
+    const dateToDelete = decodeURIComponent(req.params.date); 
+    console.log("Deleting items for date:", dateToDelete);  // Debugging log
+
+    // Try to find the item by date and delete it
+    const deletedItem = await Menu.findOneAndDelete({ date: dateToDelete });
+
     if (deletedItem) {
-      res.status(200).json({message: 'Item deleted'});
+      // If an item is deleted, return success message
+      res.status(200).json({ message: 'Item deleted successfully' });
     } else {
-      res.status(404).json({message: 'error deleting the items'});
+      // If no item is found with that date, return an error message
+      res.status(404).json({ message: 'No item found to delete' });
     }
   } catch (error) {
-    res.status(500).json({message: 'Internal server error'});
+    // Handle any errors that may occur during the deletion
+    console.error('Error deleting the item:', error);
+    res.status(500).json({ message: 'Internal server error' });
   }
 });
+
+
+const deleteItemsByDate = async () => {
+  try {
+    const encodedDate = encodeURIComponent(selectedDate); // Encoding the date for URL
+    console.log("Attempting to delete items for date:", encodedDate); // Debugging log
+    const response = await axios.delete(`https://mentalapp-backend.onrender.com/deleteItems/${encodedDate}`);
+    if (response.status === 200) {
+      fetchAllMenuData(); // Re-fetch the menu data after deletion
+    }
+  } catch (error) {
+    console.log('Error deleting the items by date', error);
+  }
+};
+
 app.post('/logout', verifyToken, (req, res) => {
     // Invalidate token on the frontend by deleting it (done in the frontend)
     // Backend could also have a token blacklist to invalidate tokens server-side
