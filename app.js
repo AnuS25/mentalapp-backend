@@ -292,6 +292,8 @@ app.delete('/deleteItems/:date', async (req, res) => {
   try {
     // Decode the date parameter to ensure proper comparison
     const dateToDelete = decodeURIComponent(req.params.date);
+        console.log("Date to delete:", dateToDelete); // Add this log to see the date received
+
     if (!dateToDelete) {
       console.log('Error: No date provided for deletion.');
       return res.status(400).json({ message: 'No date provided for deletion.' });
@@ -311,6 +313,7 @@ app.delete('/deleteItems/:date', async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
 
 
 
