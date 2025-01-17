@@ -290,9 +290,12 @@ app.post('/copyItems', async (req, res) => {
 
 app.delete('/deleteItem/:itemId', async (req, res) => {
   const itemId = req.params.itemId;
+
   try {
-    console.log("Attempting to delete item with ID:", itemId); // Debugging log
-    const deletedItem = await MenuItem.findByIdAndDelete(itemId);  // Assuming MenuItem is the model for individual items
+    console.log("Attempting to delete item with ID:", itemId);  // Debugging log
+
+    // Use the correct model to delete the item, assuming it's called "Menu"
+    const deletedItem = await Menu.findByIdAndDelete(itemId); // Menu instead of MenuItem
     
     if (deletedItem) {
       res.status(200).json({ message: 'Item deleted successfully' });
@@ -304,6 +307,7 @@ app.delete('/deleteItem/:itemId', async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
 
 
 const deleteItemsByDate = async () => {
