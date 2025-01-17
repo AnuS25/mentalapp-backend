@@ -288,15 +288,19 @@ app.post('/copyItems', async (req, res) => {
 // });;
 
 
-app.delete('/deleteItem/:itemId', async (req, res) => {
-  const itemId = req.params.itemId;
-
+app.delete('/deleteItems/:date', async (req, res) => {
   try {
-    console.log("Attempting to delete item with ID:", itemId);  // Debugging log
+    // Decode the date parameter to ensure proper comparison
+    const dateToDelete = decodeURIComponent(req.params.date);
+    if (!dateToDelete) {
+      console.log('Error: No date provided for deletion.');
+      return res.status(400).json({ message: 'No date provided for deletion.' });
+    }
+    console.log("Deleting items for date:", dateToDelete);  // Debugging log
 
-    // Use the correct model to delete the item, assuming it's called "Menu"
-    const deletedItem = await Menu.findByIdAndDelete(itemId); // Menu instead of MenuItem
-    
+    // Try to find the item by date and delete it
+    const deletedItem = await Menu.findOneAndDelete({ date: dateToDelete }); // Use date for query
+
     if (deletedItem) {
       res.status(200).json({ message: 'Item deleted successfully' });
     } else {
@@ -307,6 +311,7 @@ app.delete('/deleteItem/:itemId', async (req, res) => {
     res.status(500).json({ message: 'Internal server error' });
   }
 });
+
 
 
 
