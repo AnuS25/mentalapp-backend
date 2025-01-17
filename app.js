@@ -288,24 +288,18 @@ app.post('/copyItems', async (req, res) => {
 // });;
 
 
-app.delete('/deleteItems/:date', async (req, res) => {
+app.delete('/deleteItem/:itemId', async (req, res) => {
+  const itemId = req.params.itemId;
   try {
-    // Decode the date parameter to ensure proper comparison
-    const dateToDelete = decodeURIComponent(req.params.date); 
-    console.log("Deleting items for date:", dateToDelete);  // Debugging log
-
-    // Try to find the item by date and delete it
-    const deletedItem = await Menu.findOneAndDelete({ date: dateToDelete });
-
+    console.log("Attempting to delete item with ID:", itemId); // Debugging log
+    const deletedItem = await MenuItem.findByIdAndDelete(itemId);  // Assuming MenuItem is the model for individual items
+    
     if (deletedItem) {
-      // If an item is deleted, return success message
       res.status(200).json({ message: 'Item deleted successfully' });
     } else {
-      // If no item is found with that date, return an error message
       res.status(404).json({ message: 'No item found to delete' });
     }
   } catch (error) {
-    // Handle any errors that may occur during the deletion
     console.error('Error deleting the item:', error);
     res.status(500).json({ message: 'Internal server error' });
   }
