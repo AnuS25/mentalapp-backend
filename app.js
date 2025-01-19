@@ -152,10 +152,11 @@ const verifyToken = (req, res, next) => {
 app.post('/moods', async (req, res) => {
   const { mood, note } = req.body;
   //const userEmail = req.userEmail;
+   const { token } = req.headers; 
   if (!token) {
     return res.status(401).json({ error: 'Token is missing' });
   }
-  const { token } = req.headers; 
+ 
   try {
      const decodedUser = jwt.verify(token, JWT_SECRET);  // Decode the JWT
     const userEmail = decodedUser.email;  // Get user email from the decoded token
