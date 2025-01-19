@@ -152,6 +152,9 @@ const verifyToken = (req, res, next) => {
 app.post('/moods', async (req, res) => {
   const { mood, note } = req.body;
   //const userEmail = req.userEmail;
+  if (!token) {
+    return res.status(401).json({ error: 'Token is missing' });
+  }
   const { token } = req.headers; 
   try {
      const decodedUser = jwt.verify(token, JWT_SECRET);  // Decode the JWT
@@ -174,7 +177,8 @@ app.post('/moods', async (req, res) => {
     //res.status(201).json(newMood);
      res.send({ status: "ok", message: "Mood saved successfully" });
   } catch (error) {
-    res.status(500).json({ error: 'Failed to save mood' });
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Failed to save mood', details: error.message });
   }
 });
 // app.post("/userdata",async(req,res)=>{
