@@ -152,7 +152,7 @@ const verifyToken = (req, res, next) => {
 app.post('/moods', async (req, res) => {
   const { mood, note } = req.body;
   //const userEmail = req.userEmail;
-   const { token } = req.headers; 
+  const token = req.headers.authorization?.split(' ')[1];
   if (!token) {
     return res.status(401).json({ error: 'Token is missing' });
   }
@@ -178,8 +178,16 @@ app.post('/moods', async (req, res) => {
     //res.status(201).json(newMood);
      res.send({ status: "ok", message: "Mood saved successfully" });
   } catch (error) {
-    console.error('Error:', error);
-    res.status(500).json({ error: 'Failed to save mood', details: error.message });
+    console.error('Error decoding token or saving mood:', error);
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ error: 'Invalid token' });
+    }
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: 'Token expired' });
+    }
+    res.status(500).json({ error: 'Failed to save mood' });
+    //console.error('Error:', error);
+    //res.status(500).json({ error: 'Failed to save mood', details: error.message });
   }
 });
 // app.post("/userdata",async(req,res)=>{
