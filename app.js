@@ -190,6 +190,34 @@ app.post('/moods', async (req, res) => {
     //res.status(500).json({ error: 'Failed to save mood', details: error.message });
   }
 });
+app.get('/moods/history', async (req, res) => {
+  //const { token } = req.headers;
+    const token = req.headers.authorization?.split(" ")[1];  // Extract token from the Authorization header
+
+  const { startDate, endDate } = req.query;  // Accept start and end dates from the query
+  if (!token) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  try {
+    const decodedUser = jwt.verify(token, JWT_SECRET);
+    const userEmail = decodedUser.email;
+
+    // const query = { userEmail };
+    // if (startDate && endDate) {
+    //   query.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
+    // }
+
+    //const moodHistory = await Mood.find(query).sort({ createdAt: -1 });
+    const moodHistory = await Mood.find({ userEmail }).sort({ createdAt: -1 });
+if (!moodHistory) {
+      return res.status(404).json({ error: "No mood history found" });
+    }
+
+    res.status(200).json({ moodHistory });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch mood history' });
+  }
+});
 // app.post("/userdata",async(req,res)=>{
 //   const {token}=req.body;
 //   try{
