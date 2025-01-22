@@ -6,6 +6,11 @@ const userdetailschema = new mongoose.Schema({
     password:String,
     phone:{type: String, unique: true},
     //phone:String,
+    insights: Array,
+     name: { type: String, required: true },  // Add name field
+    bio: { type: String, default: "" },     // Add bio field (optional, defaults to empty string)
+    profession: { type: String, default: "" } // Add profession field (optional, defaults to empty string)
+
 },{
     collection:"userinfo"
 });
