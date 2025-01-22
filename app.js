@@ -379,6 +379,40 @@ app.post('/logout', verifyToken, (req, res) => {
     res.json({ success: true, message: 'Logged out successfully' });
 });
 
+app.post('/updateProfile', async (req, res) => {
+    const { token, name, bio, profession } = req.body;
+
+    try {
+        // Find the user (you may want to use token or another identifier for this)
+        const user = await User.findOne({ token });
+
+        if (!user) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        // Update user profile fields
+        if (name !== undefined) {
+            user.name = name;  // Update name
+        }
+        if (bio !== undefined) {
+            user.bio = bio;    // Update bio
+        }
+        if (profession !== undefined) {
+            user.profession = profession;  // Update profession
+        }
+
+        // Save the updated user profile
+        await user.save();
+
+        return res.status(200).json({ message: "Profile updated successfully", data: user });
+
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: "Server error" });
+    }
+});
+
+
 app.listen(5001, () => {
   console.log("Node.js server started on port 5001");
 });
