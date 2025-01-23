@@ -107,7 +107,8 @@ app.post("/login", async (req, res) => {
 
 app.post("/userdata", async (req, res) => {
   const { token } = req.body;
-  
+    console.log('Received token:', token);  // Log token received in the backend
+
   try {
     // Verify the token and extract user email
     const decodedUser = jwt.verify(token, JWT_SECRET);
