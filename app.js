@@ -121,6 +121,20 @@ app.post("/userdata", async (req, res) => {
     return res.status(500).send({ status: "error", message: "Invalid token", error: error.message });
   }
 });
+const authenticateToken = (req, res, next) => {
+    const token = req.header('Authorization')?.split(' ')[1]; // Extract token from Authorization header
+    if (!token) {
+        return res.status(401).json({ message: 'Access Denied' });
+    }
+    
+    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+        if (err) {
+            return res.status(403).json({ message: 'Invalid Token' });
+        }
+        req.user = user;
+        next();
+    });
+};
 app.get('/profile', authenticateToken, async (req, res) => {
     try {
         const userId = req.user.id; // Assuming the token contains user ID
