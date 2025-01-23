@@ -121,6 +121,28 @@ app.post("/userdata", async (req, res) => {
     return res.status(500).send({ status: "error", message: "Invalid token", error: error.message });
   }
 });
+app.get('/profile', authenticateToken, async (req, res) => {
+    try {
+        const userId = req.user.id; // Assuming the token contains user ID
+        const user = await User.findById(userId); // Find user in the database using the ID from the token
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+
+        // Return the user's profile data (you can customize the fields here)
+        res.status(200).json({
+            name: user.name,
+            bio: user.bio,
+            profession: user.profession,
+            email: user.email,
+            // Any other fields you want to send
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
 
 // const jwt = require('jsonwebtoken');
 
