@@ -107,55 +107,20 @@ app.post("/login", async (req, res) => {
 
 app.post("/userdata", async (req, res) => {
   const { token } = req.body;
+  
   try {
+    // Verify the token and extract user email
     const decodedUser = jwt.verify(token, JWT_SECRET);
-    const userEmail = decodedUser.email;
-
-    const userData = await user.findOne({ email: userEmail }, { email: 1, phone: 1, _id: 0 });
+    const userData = await user.findOne({ email: decodedUser.email }, { name: 1, email: 1, phone: 1, _id: 0 });
+    
     if (userData) {
-      return res.send({ status: "ok", data: userData });
+      return res.json({ status: "ok", data: userData });
     } else {
-      return res.status(404).send({ status: "error", message: "User not found" });
+      return res.status(404).json({ status: "error", message: "User not found" });
     }
   } catch (error) {
-    return res.status(500).send({ status: "error", message: "Invalid token", error: error.message });
+    return res.status(500).json({ status: "error", message: "Invalid token", error: error.message });
   }
-});
-const authenticateToken = (req, res, next) => {
-    const token = req.header('Authorization')?.split(' ')[1]; // Extract token from Authorization header
-    if (!token) {
-        return res.status(401).json({ message: 'Access Denied' });
-    }
-    
-    jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-        if (err) {
-            return res.status(403).json({ message: 'Invalid Token' });
-        }
-        req.user = user;
-        next();
-    });
-};
-app.get('/profile', authenticateToken, async (req, res) => {
-    try {
-        const userId = req.user.id; // Assuming the token contains user ID
-        const user = await User.findById(userId); // Find user in the database using the ID from the token
-
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        // Return the user's profile data (you can customize the fields here)
-        res.status(200).json({
-            name: user.name,
-            bio: user.bio,
-            profession: user.profession,
-            email: user.email,
-            // Any other fields you want to send
-        });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
-    }
 });
 
 // const jwt = require('jsonwebtoken');
