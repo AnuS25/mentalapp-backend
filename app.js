@@ -111,15 +111,22 @@ app.post("/userdata", async (req, res) => {
   try {
     // Verify the token and extract user email
     const decodedUser = jwt.verify(token, JWT_SECRET);
+        console.log('Decoded user:', decodedUser); // Log decoded user to check for errors
+
     const userData = await user.findOne({ email: decodedUser.email }, { name: 1, email: 1, phone: 1, _id: 0 });
     
     if (userData) {
+            console.log('User Data Found:', userData); // Log found user data
+
       return res.json({ status: "ok", data: userData });
     } else {
+            console.log('User not found');
+
       return res.status(404).json({ status: "error", message: "User not found" });
     }
   } catch (error) {
-        console.error(error); // Log error for debugging
+       // console.error(error); // Log error for debugging
+    console.error('Error in /userdata route:', error);
 
     return res.status(500).json({ status: "error", message: "Invalid token", error: error.message });
   }
