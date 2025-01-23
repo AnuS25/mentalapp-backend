@@ -30,6 +30,50 @@ app.get("/", (req, res) => {
   res.send({ status: "Started" });
 });
 
+
+app.post("/signup", async (req, res) => {
+  const { name,email, password, phone } = req.body;
+if (!name) {
+    return res.status(400).send({ status: "error", message: "Name is required" });
+  }
+  // Validate email format
+  if (!email || !emailRegex.test(email)) {
+    return res.status(400).send({ status: "error", message: "Invalid email format" });
+  }
+
+  // Validate phone number (should be 10 digits)
+  if (!phone || !phoneRegex.test(phone)) {
+    return res.status(400).send({ status: "error", message: "Phone number must be 10 digits" });
+  }
+
+  // Validate password (ensure it is not empty)
+  if (!password) {
+    return res.status(400).send({ status: "error", message: "Password is required" });
+  }
+
+  try {
+    // Check if user already exists
+    const olduser = await user.findOne({ email: email });
+    if (olduser) {
+      return res.status(400).send({ status: "error", message: "User already exists" });
+    }
+
+    // Hash the password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create new user in the database
+    await user.create({
+      name:name,
+      email: email,
+      password: hashedPassword,
+      phone:phone,
+    });
+
+    res.send({ status: "ok", message: "User created successfully" });
+
+  } catch (error) {
+    res.status(500).send({ status: "error", message: "Error creating user", error: error.message });
+  }
 });
 
 app.post("/login", async (req, res) => {
