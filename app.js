@@ -119,6 +119,8 @@ app.post("/userdata", async (req, res) => {
       return res.status(404).json({ status: "error", message: "User not found" });
     }
   } catch (error) {
+        console.error(error); // Log error for debugging
+
     return res.status(500).json({ status: "error", message: "Invalid token", error: error.message });
   }
 });
