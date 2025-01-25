@@ -430,22 +430,33 @@ app.post('/updateProfile', async (req, res) => {
 });
 app.post('/habits', async (req, res) => {
   try {
-    const { name } = req.body; // Getting the habit name from the request body
+    // Assuming the user's email is part of the JWT token (replace with your auth logic)
+    const userEmail = req.userEmail; // Extract user email from authenticated session or token
+
+    if (!userEmail) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    const { name } = req.body;
 
     if (!name) {
       return res.status(400).json({ error: 'Habit name is required' });
     }
 
-    // Logic to create a new habit. This could be inserting it into the database.
-    const newHabit = await Habit.create({ name }); // Assuming you're using a model like Habit
+    // Create a new habit and associate it with the userEmail
+    const newHabit = await Habit.create({ 
+      name, 
+      userEmail // Add userEmail to the new habit
+    });
 
-    // Sending the response with the newly created habit
-    res.status(201).json(newHabit); // You can send the habit object or a message
+    res.status(201).json(newHabit); // Return the created habit
+
   } catch (error) {
     console.error('Error adding habit:', error);
     res.status(500).json({ error: 'Failed to add habit' });
   }
 });
+
 
 app.get('/habits', verifyToken, getHabits);  // Get all habits for a user
 app.post('/habits/track', verifyToken, trackHabitCompletion);  // Track habit completion
