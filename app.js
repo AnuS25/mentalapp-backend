@@ -428,12 +428,25 @@ app.post('/updateProfile', async (req, res) => {
         return res.status(500).json({ message: "Server error" });
     }
 });
-app.post('/habits', (req, res) => {
-  const habitData = req.body;
-  // Logic to add habit (no need for token validation)
-  // Add the habit to the database and send a response
-  res.status(200).json({ message: 'Habit added successfully', habit: newHabit });
+app.post('/habits', async (req, res) => {
+  try {
+    const { name } = req.body; // Getting the habit name from the request body
+
+    if (!name) {
+      return res.status(400).json({ error: 'Habit name is required' });
+    }
+
+    // Logic to create a new habit. This could be inserting it into the database.
+    const newHabit = await Habit.create({ name }); // Assuming you're using a model like Habit
+
+    // Sending the response with the newly created habit
+    res.status(201).json(newHabit); // You can send the habit object or a message
+  } catch (error) {
+    console.error('Error adding habit:', error);
+    res.status(500).json({ error: 'Failed to add habit' });
+  }
 });
+
 app.get('/habits', verifyToken, getHabits);  // Get all habits for a user
 app.post('/habits/track', verifyToken, trackHabitCompletion);  // Track habit completion
 app.get('/habits/stats', verifyToken, getHabitStats);  // Get habit statistics
