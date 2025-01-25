@@ -166,15 +166,21 @@ app.post("/userdata", async (req, res) => {
   const { token } = req.body;
   try {
     const user = jwt.verify(token, JWT_SECRET);
+    console.log('Decoded user:', user); // Check if the decoded user is correct
     const useremail = user.email;
-
     User.findOne({ email: useremail }).then((data) => {
-      return res.send({ status: "Ok", data: data });
+      if (data) {
+        return res.send({ status: 'Ok', data });
+      } else {
+        return res.status(404).send({ status: 'error', message: 'User not found' });
+      }
     });
   } catch (error) {
+    console.log('Error decoding token:', error);
     return res.send({ error: error });
   }
 });
+
 
 // app.post('/moods',verifyToken, async (req, res) => {
 //   console.log('Route /moods hit');
