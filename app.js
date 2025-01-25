@@ -12,7 +12,8 @@ const Menu=require('./menu')
 // MongoDB connection string
 const mongourl = "mongodb+srv://database1:anisha25mongo@cluster0.8djrk.mongodb.net/mental-health";
 const JWT_SECRET = "abcdefgh[12345][6789]<>ijkl;/mnopqrstu";
-const { createHabit, getHabits, trackHabitCompletion, getHabitStats } = require('./habitcontroller');
+const { createHabit, getHabits, trackHabitCompletion, getHabitStats } = require('./controller/habitcontroller');  // Import controller
+const Habit = require('./habits');
 
 mongoose.connect(mongourl)
   .then(() => console.log("Database Connected"))
@@ -427,16 +428,10 @@ app.post('/updateProfile', async (req, res) => {
         return res.status(500).json({ message: "Server error" });
     }
 });
-app.post('/habits', verifyToken, createHabit);
-
-// Get all habits for the user
-app.get('/habits', verifyToken, getHabits);
-
-// Track habit completion (for today)
-app.post('/habits/track', verifyToken, trackHabitCompletion);
-
-// Get habit statistics (e.g., streaks, completion rates)
-app.get('/habits/stats', verifyToken, getHabitStats);
+app.post('/habits', verifyToken, createHabit);  // Create a new habit
+app.get('/habits', verifyToken, getHabits);  // Get all habits for a user
+app.post('/habits/track', verifyToken, trackHabitCompletion);  // Track habit completion
+app.get('/habits/stats', verifyToken, getHabitStats);  // Get habit statistics
 
 
 
