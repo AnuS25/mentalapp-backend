@@ -12,6 +12,7 @@ const Menu=require('./menu')
 // MongoDB connection string
 const mongourl = "mongodb+srv://database1:anisha25mongo@cluster0.8djrk.mongodb.net/mental-health";
 const JWT_SECRET = "abcdefgh[12345][6789]<>ijkl;/mnopqrstu";
+const { createHabit, getHabits, trackHabitCompletion, getHabitStats } = require('./habitcontroller');
 
 mongoose.connect(mongourl)
   .then(() => console.log("Database Connected"))
@@ -30,6 +31,23 @@ app.get("/", (req, res) => {
   res.send({ status: "Started" });
 });
 
+
+// const jwt = require('jsonwebtoken');
+
+const verifyToken = (req, res, next) => {
+  const token = req.headers['authorization']?.split(' ')[1]; // "Bearer token"
+  if (!token) {
+    return res.status(403).json({ error: 'No token provided' });
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+    req.userEmail = decoded.email;  // Set user ID from the decoded token
+    next();
+  });
+};
 
 app.post("/signup", async (req, res) => {
   const { name,email, password, phone } = req.body;
@@ -132,23 +150,6 @@ app.post("/userdata", async (req, res) => {
     return res.status(500).json({ status: "error", message: "Invalid token", error: error.message });
   }
 });
-
-// const jwt = require('jsonwebtoken');
-
-const verifyToken = (req, res, next) => {
-  const token = req.headers['authorization']?.split(' ')[1]; // "Bearer token"
-  if (!token) {
-    return res.status(403).json({ error: 'No token provided' });
-  }
-
-  jwt.verify(token, JWT_SECRET, (err, decoded) => {
-    if (err) {
-      return res.status(401).json({ error: 'Unauthorized' });
-    }
-    req.userEmail = decoded.email;  // Set user ID from the decoded token
-    next();
-  });
-};
 
 
 // app.post('/moods',verifyToken, async (req, res) => {
@@ -426,6 +427,17 @@ app.post('/updateProfile', async (req, res) => {
         return res.status(500).json({ message: "Server error" });
     }
 });
+app.post('/habits', verifyToken, createHabit);
+
+// Get all habits for the user
+app.get('/habits', verifyToken, getHabits);
+
+// Track habit completion (for today)
+app.post('/habits/track', verifyToken, trackHabitCompletion);
+
+// Get habit statistics (e.g., streaks, completion rates)
+app.get('/habits/stats', verifyToken, getHabitStats);
+
 
 
 app.listen(5001, () => {
