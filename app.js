@@ -33,6 +33,44 @@ app.get("/", (req, res) => {
 });
 
 
+// const authenticateToken = (req, res, next) => {
+//     const token = req.header('Authorization')?.split(' ')[1]; // Extract token from Authorization header
+//     if (!token) {
+//         return res.status(401).json({ message: 'Access Denied' });
+//     }
+    
+//     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+//         if (err) {
+//             return res.status(403).json({ message: 'Invalid Token' });
+//         }
+//         req.user = user;
+//         next();
+//     });
+// };
+// app.get('/profile', authenticateToken, async (req, res) => {
+//     try {
+//         const userId = req.user.id; // Assuming the token contains user ID
+//         const user = await User.findById(userId); // Find user in the database using the ID from the token
+
+//         if (!user) {
+//             return res.status(404).json({ message: 'User not found' });
+//         }
+
+//         // Return the user's profile data (you can customize the fields here)
+//         res.status(200).json({
+//             name: user.name,
+//             bio: user.bio,
+//             profession: user.profession,
+//             email: user.email,
+//             // Any other fields you want to send
+//         });
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ message: 'Server error' });
+//     }
+// });
+
+
 // const jwt = require('jsonwebtoken');
 
 const verifyToken = (req, res, next) => {
@@ -126,32 +164,17 @@ app.post("/login", async (req, res) => {
 
 app.post("/userdata", async (req, res) => {
   const { token } = req.body;
-    console.log('Received token:', token);  // Log token received in the backend
-
   try {
-    // Verify the token and extract user email
-    const decodedUser = jwt.verify(token, JWT_SECRET);
-        console.log('Decoded user:', decodedUser); // Log decoded user to check for errors
+    const user = jwt.verify(token, JWT_SECRET);
+    const useremail = user.email;
 
-    const userData = await user.findOne({ email: decodedUser.email }, { name: 1, email: 1, phone: 1, _id: 0 });
-    
-    if (userData) {
-            console.log('User Data Found:', userData); // Log found user data
-
-      return res.json({ status: "ok", data: userData });
-    } else {
-            console.log('User not found');
-
-      return res.status(404).json({ status: "error", message: "User not found" });
-    }
+    User.findOne({ email: useremail }).then((data) => {
+      return res.send({ status: "Ok", data: data });
+    });
   } catch (error) {
-       // console.error(error); // Log error for debugging
-    console.error('Error in /userdata route:', error);
-
-    return res.status(500).json({ status: "error", message: "Invalid token", error: error.message });
+    return res.send({ error: error });
   }
 });
-
 
 // app.post('/moods',verifyToken, async (req, res) => {
 //   console.log('Route /moods hit');
@@ -169,11 +192,10 @@ app.post("/userdata", async (req, res) => {
 app.post('/moods', async (req, res) => {
   const { mood, note } = req.body;
   //const userEmail = req.userEmail;
-  const token = req.headers.authorization?.split(' ')[1];
   if (!token) {
     return res.status(401).json({ error: 'Token is missing' });
   }
- 
+  const { token } = req.headers; 
   try {
      const decodedUser = jwt.verify(token, JWT_SECRET);  // Decode the JWT
     const userEmail = decodedUser.email;  // Get user email from the decoded token
@@ -195,44 +217,8 @@ app.post('/moods', async (req, res) => {
     //res.status(201).json(newMood);
      res.send({ status: "ok", message: "Mood saved successfully" });
   } catch (error) {
-    console.error('Error decoding token or saving mood:', error);
-    if (error.name === 'JsonWebTokenError') {
-      return res.status(401).json({ error: 'Invalid token' });
-    }
-    if (error.name === 'TokenExpiredError') {
-      return res.status(401).json({ error: 'Token expired' });
-    }
-    res.status(500).json({ error: 'Failed to save mood' });
-    //console.error('Error:', error);
-    //res.status(500).json({ error: 'Failed to save mood', details: error.message });
-  }
-});
-app.get('/moods/history', async (req, res) => {
-  //const { token } = req.headers;
-    const token = req.headers.authorization?.split(" ")[1];  // Extract token from the Authorization header
-
-  const { startDate, endDate } = req.query;  // Accept start and end dates from the query
-  if (!token) {
-    return res.status(401).json({ error: "Unauthorized" });
-  }
-  try {
-    const decodedUser = jwt.verify(token, JWT_SECRET);
-    const userEmail = decodedUser.email;
-
-    // const query = { userEmail };
-    // if (startDate && endDate) {
-    //   query.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
-    // }
-
-    //const moodHistory = await Mood.find(query).sort({ createdAt: -1 });
-    const moodHistory = await Mood.find({ userEmail }).sort({ createdAt: -1 });
-if (!moodHistory) {
-      return res.status(404).json({ error: "No mood history found" });
-    }
-
-    res.status(200).json({ moodHistory });
-  } catch (error) {
-    res.status(500).json({ error: 'Failed to fetch mood history' });
+    console.error('Error:', error);
+    res.status(500).json({ error: 'Failed to save mood', details: error.message });
   }
 });
 // app.post("/userdata",async(req,res)=>{
@@ -343,8 +329,7 @@ app.post('/copyItems', async (req, res) => {
 //   } catch (error) {
 //     res.status(500).json({message: 'Internal server error'});
 //   }
-// });;
-
+// });
 
 app.delete('/deleteItems/:date', async (req, res) => {
   try {
@@ -374,8 +359,6 @@ app.delete('/deleteItems/:date', async (req, res) => {
 
 
 
-
-
 const deleteItemsByDate = async () => {
   try {
     const encodedDate = encodeURIComponent(selectedDate); // Encoding the date for URL
@@ -394,6 +377,35 @@ app.post('/logout', verifyToken, (req, res) => {
     // Backend could also have a token blacklist to invalidate tokens server-side
 
     res.json({ success: true, message: 'Logged out successfully' });
+});
+
+app.get('/moods/history', async (req, res) => {
+  //const { token } = req.headers;
+    const token = req.headers.authorization?.split(" ")[1];  // Extract token from the Authorization header
+
+  const { startDate, endDate } = req.query;  // Accept start and end dates from the query
+  if (!token) {
+    return res.status(401).json({ error: "Unauthorized" });
+  }
+  try {
+    const decodedUser = jwt.verify(token, JWT_SECRET);
+    const userEmail = decodedUser.email;
+
+    // const query = { userEmail };
+    // if (startDate && endDate) {
+    //   query.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
+    // }
+
+    //const moodHistory = await Mood.find(query).sort({ createdAt: -1 });
+    const moodHistory = await Mood.find({ userEmail }).sort({ createdAt: -1 });
+if (!moodHistory) {
+      return res.status(404).json({ error: "No mood history found" });
+    }
+
+    res.status(200).json({ moodHistory });
+  } catch (error) {
+    res.status(500).json({ error: 'Failed to fetch mood history' });
+  }
 });
 
 app.post('/updateProfile', async (req, res) => {
@@ -428,40 +440,10 @@ app.post('/updateProfile', async (req, res) => {
         return res.status(500).json({ message: "Server error" });
     }
 });
-app.post('/habits', async (req, res) => {
-  try {
-    // Assuming the user's email is part of the JWT token (replace with your auth logic)
-    const userEmail = req.userEmail; // Extract user email from authenticated session or token
-
-    if (!userEmail) {
-      return res.status(401).json({ error: 'User not authenticated' });
-    }
-
-    const { name } = req.body;
-
-    if (!name) {
-      return res.status(400).json({ error: 'Habit name is required' });
-    }
-
-    // Create a new habit and associate it with the userEmail
-    const newHabit = await Habit.create({ 
-      name, 
-      userEmail // Add userEmail to the new habit
-    });
-
-    res.status(201).json(newHabit); // Return the created habit
-
-  } catch (error) {
-    console.error('Error adding habit:', error);
-    res.status(500).json({ error: 'Failed to add habit' });
-  }
-});
-
-
+app.post('/habits', verifyToken, createHabit);  // Create a new habit
 app.get('/habits', verifyToken, getHabits);  // Get all habits for a user
 app.post('/habits/track', verifyToken, trackHabitCompletion);  // Track habit completion
 app.get('/habits/stats', verifyToken, getHabitStats);  // Get habit statistics
-
 
 
 app.listen(5001, () => {
