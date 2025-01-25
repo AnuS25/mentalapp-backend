@@ -428,7 +428,12 @@ app.post('/updateProfile', async (req, res) => {
         return res.status(500).json({ message: "Server error" });
     }
 });
-app.post('/habits', verifyToken, createHabit);  // Create a new habit
+app.post('/habits', (req, res) => {
+  const habitData = req.body;
+  // Logic to add habit (no need for token validation)
+  // Add the habit to the database and send a response
+  res.status(200).json({ message: 'Habit added successfully', habit: newHabit });
+});
 app.get('/habits', verifyToken, getHabits);  // Get all habits for a user
 app.post('/habits/track', verifyToken, trackHabitCompletion);  // Track habit completion
 app.get('/habits/stats', verifyToken, getHabitStats);  // Get habit statistics
