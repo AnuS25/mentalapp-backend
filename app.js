@@ -452,6 +452,9 @@ app.post('/habits', verifyToken, createHabit);  // Create a new habit
 app.get('/habits', verifyToken, getHabits);  // Get all habits for a user
 app.post('/habits/track', verifyToken, trackHabitCompletion);  // Track habit completion
 app.get('/habits/stats', verifyToken, getHabitStats);  // Get habit statistics
+require("./journal");
+const Journal = mongoose.model("Journal");
+console.log(Journal);  // Should log the Journal model object, not `undefined`
 
 app.post("/api/journals", async (req, res) => {
   const { userId, title, content } = req.body;
