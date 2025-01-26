@@ -453,6 +453,54 @@ app.get('/habits', verifyToken, getHabits);  // Get all habits for a user
 app.post('/habits/track', verifyToken, trackHabitCompletion);  // Track habit completion
 app.get('/habits/stats', verifyToken, getHabitStats);  // Get habit statistics
 
+const Journal = require("./journal");
+
+// Create a journal entry
+app.post("/", async (req, res) => {
+  const { userId, title, content } = req.body;
+
+  try {
+    const newJournal = new Journal({ userId, title, content });
+    await newJournal.save();
+    res.status(201).json({ message: "Journal created successfully", newJournal });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get all journals for a user
+app.get("/:userId", async (req, res) => {
+  try {
+    const journals = await Journal.find({ userId: req.params.userId });
+    res.status(200).json(journals);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update a journal entry
+app.put("/:id", async (req, res) => {
+  try {
+    const updatedJournal = await Journal.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true }
+    );
+    res.status(200).json(updatedJournal);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete a journal entry
+app.delete("/:id", async (req, res) => {
+  try {
+    await Journal.findByIdAndDelete(req.params.id);
+    res.status(200).json({ message: "Journal deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
 
 app.listen(5001, () => {
   console.log("Node.js server started on port 5001");
