@@ -78,7 +78,13 @@ const verifyToken = (req, res, next) => {
   if (!token) {
     return res.status(403).json({ error: 'No token provided' });
   }
-
+try {
+    const decoded = jwt.verify(token, JWT_SECRET); // Verify the token with the secret
+    req.user = decoded;  // Attach the decoded user information to the request object
+    next();  // Proceed to the next middleware or route handler
+  } catch (error) {
+    return res.status(403).json({ error: 'Invalid or expired token' });
+  }
   jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (err) {
       return res.status(401).json({ error: 'Unauthorized' });
