@@ -510,7 +510,84 @@ app.delete("/:id", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+// Import Tracking model
+const Tracking = require('./Tracking');
 
+// POST route to save tracking data
+app.post('/api/tracking', verifyToken, async (req, res) => {
+  const { todoList, morningRoutine, waterIntake, gratitude, sleepHours, productivity, mood } = req.body;
+
+  const token = req.headers.authorization?.split(" ")[1];
+  
+  if (!token) {
+    return res.status(401).json({ error: 'No token provided' });
+  }
+
+  try {
+    const decodedUser = jwt.verify(token, JWT_SECRET);
+    const userEmail = decodedUser.email;
+
+    // Find the user (optional, you can also use userId)
+    const UserData = await user.findOne({ email: userEmail });
+
+    if (!UserData) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Create a new tracking entry
+    const newTracking = new Tracking({
+      userId: UserData._id,  // Reference to the User's _id
+      todoList: todoList,
+      morningRoutine: morningRoutine,
+      waterIntake: waterIntake,
+      gratitude: gratitude,
+      sleepHours: sleepHours,
+      productivity: productivity,
+      mood: mood,
+    });
+
+    await newTracking.save();
+
+    res.status(201).json({ message: 'Tracking data saved successfully' });
+  } catch (error) {
+    console.error('Error saving tracking data:', error);
+    res.status(500).json({ error: 'Error saving tracking data', details: error.message });
+  }
+});
+// GET route to fetch tracking data
+app.get('/api/tracking', verifyToken, async (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({ error: 'No token provided' });
+  }
+
+  try {
+    const decodedUser = jwt.verify(token, JWT_SECRET);
+    const userEmail = decodedUser.email;
+
+    // Find the user
+    const UserData = await user.findOne({ email: userEmail });
+
+    if (!UserData) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Retrieve all tracking data for the user
+    const trackingData = await Tracking.find({ userId: UserData._id }).sort({ createdAt: -1 });
+
+    if (!trackingData || trackingData.length === 0) {
+      return res.status(404).json({ error: 'No tracking data found' });
+    }
+
+    res.status(200).json({ trackingData });
+  } catch (error) {
+    console.error('Error fetching tracking data:', error);
+    res.status(500).json({ error: 'Error fetching tracking data', details: error.message });
+  }
+});
+
+app.l
 app.listen(5001, () => {
   console.log("Node.js server started on port 5001");
 });
