@@ -456,17 +456,22 @@ app.get('/habits/stats', verifyToken, getHabitStats);  // Get habit statistics
 const Journal = require("./journal");
 
 // Create a journal entry
-app.post("/", async (req, res) => {
+app.post("/api/journal", async (req, res) => {
   const { userId, title, content } = req.body;
 
   try {
     const newJournal = new Journal({ userId, title, content });
     await newJournal.save();
+        console.log("Journal created:", newJournal); // Log the created journal object
+
     res.status(201).json({ message: "Journal created successfully", newJournal });
   } catch (error) {
+        console.error("Error saving journal:", error.message); // More detailed error logging
+
     res.status(500).json({ error: error.message });
   }
 });
+
 
 // Get all journals for a user
 app.get("/:userId", async (req, res) => {
