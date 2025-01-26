@@ -458,11 +458,14 @@ const Journal = require("./journal");
 // Create a journal entry
 app.post("/api/journal", async (req, res) => {
   const { userId, title, content } = req.body;
+  console.log("Received data:", req.body); // Log the incoming data
 
   try {
     const newJournal = new Journal({ userId, title, content });
-    await newJournal.save();
+    //await newJournal.save();
         console.log("Journal created:", newJournal); // Log the created journal object
+await newJournal.save();
+    console.log("Journal created successfully:", newJournal); // Log if saving was successful
 
     res.status(201).json({ message: "Journal created successfully", newJournal });
   } catch (error) {
