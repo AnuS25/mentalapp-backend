@@ -89,6 +89,7 @@ try {
     if (err) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
+    req.userId = decoded.userId;
     req.userEmail = decoded.email;  // Set user ID from the decoded token
     next();
   });
@@ -520,29 +521,31 @@ app.delete("/:id", async (req, res) => {
 const Tracking = require('./Tracking');
 
 // POST route to save tracking data
+
+// Assuming verifyToken middleware is already defined and used to extract `userId` from token
 app.post('/api/tracking', verifyToken, async (req, res) => {
+  // Destructure the data sent in the request body
   const { todoList, morningRoutine, waterIntake, gratitude, sleepHours, productivity, mood } = req.body;
 
-  const token = req.headers.authorization?.split(" ")[1];
-  
-  if (!token) {
-    return res.status(401).json({ error: 'No token provided' });
+  // Extract the userId from the req object which was populated by the verifyToken middleware
+  const userId = req.userId; // This should now be set by the verifyToken middleware
+
+  // Check if the token exists
+  if (!userId) {
+    return res.status(401).json({ error: 'No valid userId found in token' });
   }
 
   try {
-    const decodedUser = jwt.verify(token, JWT_SECRET);
-    const userEmail = decodedUser.email;
-
-    // Find the user (optional, you can also use userId)
-    const UserData = await user.findOne({ email: userEmail });
+    // Find the user in the database using the userId from the token
+    const UserData = await user.findById(userId);
 
     if (!UserData) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Create a new tracking entry
+    // Create a new tracking entry with the provided data
     const newTracking = new Tracking({
-      userId: UserData._id,  // Reference to the User's _id
+      userId: UserData._id,  // Reference to the User's _id from the database
       todoList: todoList,
       morningRoutine: morningRoutine,
       waterIntake: waterIntake,
@@ -552,14 +555,18 @@ app.post('/api/tracking', verifyToken, async (req, res) => {
       mood: mood,
     });
 
+    // Save the new tracking data entry
     await newTracking.save();
 
+    // Return a success response
     res.status(201).json({ message: 'Tracking data saved successfully' });
+
   } catch (error) {
     console.error('Error saving tracking data:', error);
     res.status(500).json({ error: 'Error saving tracking data', details: error.message });
   }
 });
+
 // GET route to fetch tracking data
 app.get('/api/tracking', verifyToken, async (req, res) => {
   const token = req.headers.authorization?.split(" ")[1];
