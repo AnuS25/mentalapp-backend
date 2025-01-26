@@ -198,10 +198,12 @@ app.post("/userdata", async (req, res) => {
 app.post('/moods', async (req, res) => {
   const { mood, note } = req.body;
   //const userEmail = req.userEmail;
+    const token = req.headers.authorization?.split(" ")[1]; // Correctly extract the token from headers
+
   if (!token) {
     return res.status(401).json({ error: 'Token is missing' });
   }
-  const { token } = req.headers; 
+  //const { token } = req.headers; 
   try {
      const decodedUser = jwt.verify(token, JWT_SECRET);  // Decode the JWT
     const userEmail = decodedUser.email;  // Get user email from the decoded token
