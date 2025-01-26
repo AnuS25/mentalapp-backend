@@ -453,7 +453,7 @@ app.get('/habits', verifyToken, getHabits);  // Get all habits for a user
 app.post('/habits/track', verifyToken, trackHabitCompletion);  // Track habit completion
 app.get('/habits/stats', verifyToken, getHabitStats);  // Get habit statistics
 
-app.post("/api/journal", async (req, res) => {
+app.post("/api/journals", async (req, res) => {
   const { userId, title, content } = req.body;
   console.log("Received data:", req.body); // Log the incoming data
 
