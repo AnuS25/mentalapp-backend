@@ -453,15 +453,12 @@ app.get('/habits', verifyToken, getHabits);  // Get all habits for a user
 app.post('/habits/track', verifyToken, trackHabitCompletion);  // Track habit completion
 app.get('/habits/stats', verifyToken, getHabitStats);  // Get habit statistics
 
-const Journal = require("./journal");
-
-// Create a journal entry
 app.post("/api/journal", async (req, res) => {
   const { userId, title, content } = req.body;
   console.log("Received data:", req.body); // Log the incoming data
 
   try {
-    const newJournal = new Journal({ userId, title, content });
+    const newJournal = new Journal({ userId:userId, title:title, content:content });
     //await newJournal.save();
         console.log("Journal created:", newJournal); // Log the created journal object
 await newJournal.save();
@@ -474,6 +471,7 @@ await newJournal.save();
     res.status(500).json({ error: error.message });
   }
 });
+
 
 
 // Get all journals for a user
