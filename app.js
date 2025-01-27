@@ -18,15 +18,15 @@ const JWT_SECRET = "abcdefgh[12345][6789]<>ijkl;/mnopqrstu";
 require("./userdetails");
 const user = mongoose.model("userinfo");
 
+
+mongoose.connect(mongourl)
+  .then(() => console.log("Database Connected"))
+  .catch((e) => console.log(e));
 // Email validation regex
 const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;
 
 // Phone number validation regex (10 digits, only numbers)
 const phoneRegex = /^[0-9]{10}$/;
-
-mongoose.connect(mongourl)
-  .then(() => console.log("Database Connected"))
-  .catch((e) => console.log(e));
 
 app.get("/", (req, res) => {
   res.send({ status: "Started" });
@@ -45,6 +45,15 @@ const verifyToken = (req, res, next) => {
   } catch (error) {
     return res.status(403).json({ error: 'Invalid or expired token' });
   }
+    jwt.verify(token, JWT_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+        req.userId = decoded.userId;
+
+    req.userEmail = decoded.email;  // Set user ID from the decoded token
+    next();
+  });
 };
 
 // Track user activity middleware
@@ -107,6 +116,8 @@ app.post("/signup", async (req, res) => {
   }
 });
 
+
+
 app.post("/login", async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
@@ -126,10 +137,38 @@ app.post("/login", async (req, res) => {
     }
 
     // Generate JWT token
-    const token = jwt.sign({ email: userDetails.email }, JWT_SECRET, { expiresIn: "1h" });
+const token = jwt.sign({ email: userDetails.email, userId: userDetails._id }, JWT_SECRET, { expiresIn: "1h" });
     res.send({ status: "ok", message: "Login successful", token: token });
   } catch (error) {
     res.status(500).send({ status: "error", message: "Error during login", error: error.message });
+  }
+});
+// Usage example in a protected route
+app.get("/profile", verifyToken,  async(req, res) => {
+  const userId = req.user.userId;  // Access the userId from the decoded token
+  //res.send({ message: `User profile of ID ${userId}` });
+   try {
+    // Fetch the user from the database using the userId
+    const userDetails = await user.findById(userId);
+
+    if (!userDetails) {
+      return res.status(404).send({ status: "error", message: "User not found" });
+    }
+
+    // Send the user details back as response (you can include other details as well)
+    res.send({
+      status: "ok",
+      message: "User profile fetched successfully",
+      user: {
+        name: userDetails.name,
+        email: userDetails.email,
+        phone: userDetails.phone,
+        // Add any other fields you want to return here
+      }
+    });
+
+  } catch (error) {
+    res.status(500).send({ status: "error", message: "Error fetching user profile", error: error.message });
   }
 });
 
@@ -142,6 +181,7 @@ require("./journal");
 const Journal = mongoose.model("Journal");
 console.log(Journal);  // Should log the Journal model object, not `undefined`
 
+// Create a journal entry
 app.post("/api/journals", async (req, res) => {
   const { userId, title, content } = req.body;
   console.log("Received data:", req.body); // Log the incoming data
@@ -160,8 +200,6 @@ await newJournal.save();
     res.status(500).json({ error: error.message });
   }
 });
-
-
 
 // Get all journals for a user
 app.get("/:userId", async (req, res) => {
@@ -196,10 +234,10 @@ app.delete("/:id", async (req, res) => {
     res.status(500).json({ error: error.message });
   }
 });
+
 // Import Tracking model
 const Tracking = require('./Tracking');
 
-// POST route to save tracking data
 
 // Assuming verifyToken middleware is already defined and used to extract `userId` from token
 app.post('/api/tracking', verifyToken, async (req, res) => {
@@ -279,7 +317,6 @@ app.get('/api/tracking', verifyToken, async (req, res) => {
   }
 });
 
-app.l
 app.listen(5001, () => {
   console.log("Node.js server started on port 5001");
 });
