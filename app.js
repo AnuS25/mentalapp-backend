@@ -126,7 +126,7 @@ app.post("/login", async (req, res) => {
   try {
     // Compare entered password with hashed password
     if (await bcrypt.compare(password, olduser.password)) {
-      const token = jwt.sign({ email: olduser.email }, JWT_SECRET);
+      const token = jwt.sign({ email: olduser.email });
       return res.send({ status: "ok", data: token });
     } else {
       return res.status(400).send({ status: "error", message: "Invalid password" });
