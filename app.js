@@ -126,34 +126,6 @@ app.post("/login", async (req, res) => {
   try {
     // Compare entered password with hashed password
     if (await bcrypt.compare(password, olduser.password)) {
-      const token = jwt.sign({ email: olduser.email });
-      return res.send({ status: "ok", data: token });
-    } else {
-      return res.status(400).send({ status: "error", message: "Invalid password" });
-    }
-  } catch (error) {
-    console.log(error);
-    return res.status(500).send({ status: "error", message: "Error comparing passwords", error: error.message });
-  }
-});
-app.post("/login", async (req, res) => {
-  const { email, password } = req.body;
-
-  // Find user by email
-  const olduser = await user.findOne({ email: email });
-  console.log("Retrieved user:", olduser);
-
-  if (!olduser) {
-    return res.status(400).send({ status: "error", message: "User doesn't exist" });
-  }
-
-  if (!olduser.password) {
-    return res.status(400).send({ status: "error", message: "Password not set for user" });
-  }
-
-  try {
-    // Compare entered password with hashed password
-    if (await bcrypt.compare(password, olduser.password)) {
       const token = jwt.sign({ email: olduser.email }, JWT_SECRET);
       return res.send({ status: "ok", data: token });
     } else {
