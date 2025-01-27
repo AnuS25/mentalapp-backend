@@ -384,7 +384,7 @@ const deleteItemsByDate = async () => {
   try {
     const encodedDate = encodeURIComponent(selectedDate); // Encoding the date for URL
     console.log("Attempting to delete items for date:", encodedDate); // Debugging log
-    const response = await axios.delete(https://mentalapp-backend.onrender.com/deleteItems/${encodedDate});
+    const response = await axios.delete(`https://mentalapp-backend.onrender.com/deleteItems/${encodedDate}`);
     if (response.status === 200) {
       fetchAllMenuData(); // Re-fetch the menu data after deletion
     }
