@@ -99,7 +99,7 @@ const trackActivity = (req, res, next) => {
   const userEmail = req.userEmail; // Now it's guaranteed to be set by verifyToken
 
   if (userEmail) {
-    const activity = ${userEmail} performed ${req.method} ${req.originalUrl};
+    const activity = `${userEmail} performed ${req.method} ${req.originalUrl}`;
     logUserActivity(activity);
   }
 
