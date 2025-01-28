@@ -207,12 +207,12 @@ app.post('/moods', async (req, res) => {
   //const userEmail = req.userEmail;
   console.log('Received mood data:', { mood, note });
 
-    //const token = req.headers.authorization?.split(" ")[1]; // Correctly extract the token from headers
+    const token = req.headers.authorization?.split(" ")[1]; // Correctly extract the token from headers
 
   if (!token) {
     return res.status(401).json({ error: 'Token is missing' });
   }
-  const { token } = req.headers; 
+  //const { token } = req.headers; 
   try {
      const decodedUser = jwt.verify(token, JWT_SECRET);  // Decode the JWT
     const userEmail = decodedUser.email;  // Get user email from the decoded token
@@ -236,7 +236,16 @@ app.post('/moods', async (req, res) => {
      res.send({ status: "ok", message: "Mood saved successfully" });
   } catch (error) {
     console.error('Error:', error);
-    res.status(500).json({ error: 'Failed to save mood', details: error.message });
+    
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ error: 'Invalid token' }); // Catch invalid token errors
+    }
+
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: 'Token has expired' }); // Catch expired token errors
+    }
+
+    res.status(500).json({ error: 'Failed to save mood', details: error.message }); // General error handler
   }
 });
 // app.post("/userdata",async(req,res)=>{
