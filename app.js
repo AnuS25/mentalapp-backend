@@ -43,7 +43,8 @@ const verifyToken = (req, res, next) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
     //req.userEmail = decoded.email;  // Set user ID from the decoded token
-    req.userEmail = decoded;
+        req.user = decoded;  // Now set the whole decoded JWT payload to req.user
+
     next();
   });
 };
@@ -174,6 +175,7 @@ app.post("/userdata", async (req, res) => {
     console.log('Decoded user:', user); // Check if the decoded user is correct
     const useremail = user.email;
     User.findOne({ email: useremail }).then((data) => {
+      
       if (data) {
         return res.send({ status: 'Ok', data });
       } else {
@@ -205,12 +207,12 @@ app.post('/moods', async (req, res) => {
   //const userEmail = req.userEmail;
   console.log('Received mood data:', { mood, note });
 
-    const token = req.headers.authorization?.split(" ")[1]; // Correctly extract the token from headers
+    //const token = req.headers.authorization?.split(" ")[1]; // Correctly extract the token from headers
 
   if (!token) {
     return res.status(401).json({ error: 'Token is missing' });
   }
-  //const { token } = req.headers; 
+  const { token } = req.headers; 
   try {
      const decodedUser = jwt.verify(token, JWT_SECRET);  // Decode the JWT
     const userEmail = decodedUser.email;  // Get user email from the decoded token
