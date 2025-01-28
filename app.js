@@ -47,19 +47,8 @@ const verifyToken = (req, res, next) => {
   });
 };
 // Track user activity middleware
-const trackActivity = (req, res, next) => {
-  const userEmail = req.user.email; // Now it's guaranteed to be set by `verifyToken`
 
-  if (userEmail) {
-    const activity = `${userEmail} performed ${req.method} ${req.originalUrl}`;
-    logUserActivity(activity);
-  }
-
-  next();
-};
-
-app.use(verifyToken); // First verify token
-app.use(trackActivity); // Then log the activity
+//app.use(verifyToken); // First verify token
 
 app.post("/signup", async (req, res) => {
   const { name, email, password, phone } = req.body;
@@ -165,6 +154,17 @@ app.post("/login", async (req, res) => {
 //     res.status(500).send({ status: "error", message: "Error fetching user profile", error: error.message });
 //   }
 // });
+const trackActivity = (req, res, next) => {
+  const userEmail = req.user.email; // Now it's guaranteed to be set by `verifyToken`
+
+  if (userEmail) {
+    const activity = `${userEmail} performed ${req.method} ${req.originalUrl}`;
+    logUserActivity(activity);
+  }
+
+  next();
+};
+app.use(trackActivity); // Then log the activity
 
 // Sample route for habit tracking
 app.post("/habit", createHabit); // Use controller functions for habit routes
