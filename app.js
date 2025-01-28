@@ -42,7 +42,8 @@ const verifyToken = (req, res, next) => {
     if (err) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
-    req.userEmail = decoded.email;  // Set user ID from the decoded token
+    //req.userEmail = decoded.email;  // Set user ID from the decoded token
+    req.userEmail = decoded;
     next();
   });
 };
@@ -155,7 +156,7 @@ app.post("/login", async (req, res) => {
 //   }
 // });
 const trackActivity = (req, res, next) => {
-  const userEmail = req.user.email; // Now it's guaranteed to be set by `verifyToken`
+  const userEmail = req.user?.email; // Now it's guaranteed to be set by `verifyToken`
 
   if (userEmail) {
     const activity = `${userEmail} performed ${req.method} ${req.originalUrl}`;
