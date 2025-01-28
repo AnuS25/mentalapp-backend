@@ -203,6 +203,8 @@ app.post("/userdata", async (req, res) => {
 app.post('/moods', async (req, res) => {
   const { mood, note } = req.body;
   //const userEmail = req.userEmail;
+  console.log('Received mood data:', { mood, note });
+
     const token = req.headers.authorization?.split(" ")[1]; // Correctly extract the token from headers
 
   if (!token) {
@@ -212,6 +214,7 @@ app.post('/moods', async (req, res) => {
   try {
      const decodedUser = jwt.verify(token, JWT_SECRET);  // Decode the JWT
     const userEmail = decodedUser.email;  // Get user email from the decoded token
+    console.log('User email:', userEmail);  // Log the decoded user email
 
     const UserData = await user.findOne({ email: userEmail });
 
