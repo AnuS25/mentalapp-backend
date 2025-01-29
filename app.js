@@ -500,25 +500,39 @@ const Journal = mongoose.model("Journal");
 console.log(Journal);  // Should log the Journal model object, not `undefined`
 
 app.post("/api/journals", async (req, res) => {
-  const { userId, title, content } = req.body;
-  console.log("Received data:", req.body); // Log the incoming data
-if (!userId) {
-    return res.status(400).json({ error: "User ID is required" });
+  const { title, content } = req.body;
+  const token = req.headers.authorization?.split(" ")[1];  // Extract token
+
+  if (!token) {
+    return res.status(401).json({ error: "Token is missing" });
   }
+
   try {
-    const newJournal = new Journal({ userId:userId, title:title, content:content });
+    // Decode the token
+    const decodedUser = jwt.verify(token, JWT_SECRET);
+    console.log("Decoded user:", decodedUser);  // Debugging line
+    
+    const userEmail = decodedUser.email;
+    console.log("Looking for user with email:", userEmail);  // Debugging line
+
+    const UserData = await user.findOne({ email: userEmail });
+    console.log("User data found:", UserData);  // Debugging line
+
+    if (!UserData) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    // Proceed to create journal entry
+    const newJournal = new Journal({ userId: UserData._id, title, content });
     await newJournal.save();
-        console.log("Journal created:", newJournal); // Log the created journal object
-await newJournal.save();
-    console.log("Journal created successfully:", newJournal); // Log if saving was successful
 
     res.status(201).json({ message: "Journal created successfully", newJournal });
   } catch (error) {
-        console.error("Error saving journal:", error.message); // More detailed error logging
-
+    console.error("Error saving journal:", error.message);
     res.status(500).json({ error: error.message });
   }
 });
+
 
 
 
