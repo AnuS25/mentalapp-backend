@@ -170,21 +170,45 @@ app.use(trackActivity); // Then log the activity
 
 app.post("/userdata", async (req, res) => {
   const { token } = req.body;
+    console.log("Received Token:", token);  // Log the received token to check if it's being sent properly
+if (!token) {
+    return res.status(401).json({ error: "Unauthorized - No token provided" });
+  }
   try {
     const user = jwt.verify(token, JWT_SECRET);
     console.log('Decoded user:', user); // Check if the decoded user is correct
     const useremail = user.email;
-    User.findOne({ email: useremail }).then((data) => {
+        console.log("User Email from decoded token:", useremail);  // Log the user's email to ensure it's correct
+
+  //   User.findOne({ email: useremail }).then((data) => {
       
-      if (data) {
-        return res.send({ status: 'Ok', data });
-      } else {
-        return res.status(404).send({ status: 'error', message: 'User not found' });
-      }
-    });
+  //     if (data) {
+  //       return res.send({ status: 'Ok', data });
+  //     } else {
+  //       return res.status(404).send({ status: 'error', message: 'User not found' });
+  //     }
+  //   });
+  // } catch (error) {
+  //   console.log('Error decoding token:', error);
+  //   return res.send({ error: error });
+  //}
+   // Fetch the user data from the database using the email
+    const data = await user.findOne({ email: useremail });
+
+    // Log the fetched user data to ensure the query works
+    console.log("Fetched User Data:", data);
+
+    if (data) {
+      // If user data is found, send it in the response
+      return res.send({ status: 'Ok', data });
+    } else {
+      // If no user data is found, send an error message
+      return res.status(404).send({ status: 'error', message: 'User not found' });
+    }
   } catch (error) {
+    // Catch any errors during token verification and log them
     console.log('Error decoding token:', error);
-    return res.send({ error: error });
+    return res.status(500).send({ error: error.message });
   }
 });
 
@@ -478,10 +502,12 @@ console.log(Journal);  // Should log the Journal model object, not `undefined`
 app.post("/api/journals", async (req, res) => {
   const { userId, title, content } = req.body;
   console.log("Received data:", req.body); // Log the incoming data
-
+if (!userId) {
+    return res.status(400).json({ error: "User ID is required" });
+  }
   try {
     const newJournal = new Journal({ userId:userId, title:title, content:content });
-    //await newJournal.save();
+    await newJournal.save();
         console.log("Journal created:", newJournal); // Log the created journal object
 await newJournal.save();
     console.log("Journal created successfully:", newJournal); // Log if saving was successful
