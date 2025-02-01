@@ -117,7 +117,7 @@ app.post("/login", async (req, res) => {
   try {
     // Compare entered password with hashed password
     if (await bcrypt.compare(password, olduser.password)) {
-      const token = jwt.sign({ email: olduser.email }, JWT_SECRET);
+      const token = jwt.sign({ email: olduser.email, userId: olduser._id  }, JWT_SECRET);
       return res.send({ status: "ok", data: token });
     } else {
       return res.status(400).send({ status: "error", message: "Invalid password" });
@@ -129,33 +129,33 @@ app.post("/login", async (req, res) => {
 });
 
 // Usage example in a protected route
-// app.get("/profile", verifyToken,  async(req, res) => {
-//   const userId = req.user.userId;  // Access the userId from the decoded token
-//   //res.send({ message: `User profile of ID ${userId}` });
-//    try {
-//     // Fetch the user from the database using the userId
-//     const userDetails = await user.findById(userId);
+app.get("/profile", verifyToken,  async(req, res) => {
+  const userId = req.user.userId;  // Access the userId from the decoded token
+  //res.send({ message: `User profile of ID ${userId}` });
+   try {
+    // Fetch the user from the database using the userId
+    const userDetails = await user.findById(userId);
 
-//     if (!userDetails) {
-//       return res.status(404).send({ status: "error", message: "User not found" });
-//     }
+    if (!userDetails) {
+      return res.status(404).send({ status: "error", message: "User not found" });
+    }
 
-//     // Send the user details back as response (you can include other details as well)
-//     res.send({
-//       status: "ok",
-//       message: "User profile fetched successfully",
-//       user: {
-//         name: userDetails.name,
-//         email: userDetails.email,
-//         phone: userDetails.phone,
-//         // Add any other fields you want to return here
-//       }
-//     });
+    // Send the user details back as response (you can include other details as well)
+    res.send({
+      status: "ok",
+      message: "User profile fetched successfully",
+      user: {
+        name: userDetails.name,
+        email: userDetails.email,
+        phone: userDetails.phone,
+        // Add any other fields you want to return here
+      }
+    });
 
-//   } catch (error) {
-//     res.status(500).send({ status: "error", message: "Error fetching user profile", error: error.message });
-//   }
-// });
+  } catch (error) {
+    res.status(500).send({ status: "error", message: "Error fetching user profile", error: error.message });
+  }
+});
 const trackActivity = (req, res, next) => {
   const userEmail = req.user?.email; // Now it's guaranteed to be set by `verifyToken`
 
@@ -168,49 +168,49 @@ const trackActivity = (req, res, next) => {
 };
 app.use(trackActivity); // Then log the activity
 
-app.post("/userdata", async (req, res) => {
-  const { token } = req.body;
-    console.log("Received Token:", token);  // Log the received token to check if it's being sent properly
-if (!token) {
-    return res.status(401).json({ error: "Unauthorized - No token provided" });
-  }
-  try {
-    const user = jwt.verify(token, JWT_SECRET);
-    console.log('Decoded user:', user); // Check if the decoded user is correct
-    const useremail = user.email;
-        console.log("User Email from decoded token:", useremail);  // Log the user's email to ensure it's correct
+// app.post("/userdata", async (req, res) => {
+//   const { token } = req.body;
+//     console.log("Received Token:", token);  // Log the received token to check if it's being sent properly
+// if (!token) {
+//     return res.status(401).json({ error: "Unauthorized - No token provided" });
+//   }
+//   try {
+//     const user = jwt.verify(token, JWT_SECRET);
+//     console.log('Decoded user:', user); // Check if the decoded user is correct
+//     const useremail = user.email;
+//         console.log("User Email from decoded token:", useremail);  // Log the user's email to ensure it's correct
 
-  //   User.findOne({ email: useremail }).then((data) => {
+//   //   User.findOne({ email: useremail }).then((data) => {
       
-  //     if (data) {
-  //       return res.send({ status: 'Ok', data });
-  //     } else {
-  //       return res.status(404).send({ status: 'error', message: 'User not found' });
-  //     }
-  //   });
-  // } catch (error) {
-  //   console.log('Error decoding token:', error);
-  //   return res.send({ error: error });
-  //}
-   // Fetch the user data from the database using the email
-    const data = await user.findOne({ email: useremail });
+//   //     if (data) {
+//   //       return res.send({ status: 'Ok', data });
+//   //     } else {
+//   //       return res.status(404).send({ status: 'error', message: 'User not found' });
+//   //     }
+//   //   });
+//   // } catch (error) {
+//   //   console.log('Error decoding token:', error);
+//   //   return res.send({ error: error });
+//   //}
+//    // Fetch the user data from the database using the email
+//     const data = await user.findOne({ email: useremail });
 
-    // Log the fetched user data to ensure the query works
-    console.log("Fetched User Data:", data);
+//     // Log the fetched user data to ensure the query works
+//     console.log("Fetched User Data:", data);
 
-    if (data) {
-      // If user data is found, send it in the response
-      return res.send({ status: 'Ok', data });
-    } else {
-      // If no user data is found, send an error message
-      return res.status(404).send({ status: 'error', message: 'User not found' });
-    }
-  } catch (error) {
-    // Catch any errors during token verification and log them
-    console.log('Error decoding token:', error);
-    return res.status(500).send({ error: error.message });
-  }
-});
+//     if (data) {
+//       // If user data is found, send it in the response
+//       return res.send({ status: 'Ok', data });
+//     } else {
+//       // If no user data is found, send an error message
+//       return res.status(404).send({ status: 'error', message: 'User not found' });
+//     }
+//   } catch (error) {
+//     // Catch any errors during token verification and log them
+//     console.log('Error decoding token:', error);
+//     return res.status(500).send({ error: error.message });
+//   }
+// });
 
 
 // app.post('/moods',verifyToken, async (req, res) => {
