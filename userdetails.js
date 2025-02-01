@@ -1,7 +1,8 @@
 const mongoose=require("mongoose");
 
 const userdetailschema = new mongoose.Schema({
-    
+        userId: { type: mongoose.Schema.Types.ObjectId, auto: true }, // Optional: you can store _id as userId
+
     email:{type: String,required:true, unique: true},
     password:String,
     phone:{type: String,required:true, unique: true},
