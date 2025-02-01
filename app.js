@@ -442,14 +442,14 @@ app.get('/moods/history', async (req, res) => {
     const decodedUser = jwt.verify(token, JWT_SECRET);
     const userEmail = decodedUser.email;
 
-    // const query = { userEmail };
-    // if (startDate && endDate) {
-    //   query.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
-    // }
+    const query = { userEmail };
+    if (startDate && endDate) {
+      query.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
+    }
 
-    //const moodHistory = await Mood.find(query).sort({ createdAt: -1 });
-    const moodHistory = await Mood.find({ userEmail }).sort({ createdAt: -1 });
-if (!moodHistory) {
+    const moodHistory = await Mood.find(query).sort({ createdAt: -1 }).limit(6);
+    // const moodHistory = await Mood.find({ userEmail }).sort({ createdAt: -1 });
+if (!moodHistory.length) {
       return res.status(404).json({ error: "No mood history found" });
     }
 
@@ -458,6 +458,7 @@ if (!moodHistory) {
     res.status(500).json({ error: 'Failed to fetch mood history' });
   }
 });
+
 
 app.post('/updateProfile', async (req, res) => {
     const { token, name, bio, profession } = req.body;
