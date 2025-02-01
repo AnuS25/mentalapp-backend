@@ -447,8 +447,32 @@ app.get('/moods/history', async (req, res) => {
       query.createdAt = { $gte: new Date(startDate), $lte: new Date(endDate) };
     }
 
-    const moodHistory = await Mood.find(query).sort({ createdAt: -1 }).limit(6);
+    //const moodHistory = await Mood.find(query).sort({ createdAt: -1 }).limit(6);
     // const moodHistory = await Mood.find({ userEmail }).sort({ createdAt: -1 });
+    const moodHistory = await Mood.aggregate([
+      { $match: query },
+      { 
+        $project: {
+          mood: 1,
+          note: 1,
+          createdAt: 1,
+          date: { $dateToString: { format: "%Y-%m-%d", date: "$createdAt" } }, // Extract date part only
+        }
+      },
+      {
+        $sort: { createdAt: -1 },  // Sort by createdAt in descending order (latest first)
+      },
+      {
+        $group: {
+          _id: "$date",  // Group by the date only (ignoring time)
+          mood: { $first: "$mood" },  // Get the first mood of the day (latest)
+          note: { $first: "$note" },
+          createdAt: { $first: "$createdAt" }, // Get the first createdAt for the most recent entry on that date
+        },
+      },
+      { $sort: { createdAt: -1 } },  // Sort by createdAt to get the most recent moods first
+    ]);
+
 if (!moodHistory.length) {
       return res.status(404).json({ error: "No mood history found" });
     }
@@ -458,8 +482,6 @@ if (!moodHistory.length) {
     res.status(500).json({ error: 'Failed to fetch mood history' });
   }
 });
-
-
 app.post('/updateProfile', async (req, res) => {
     const { token, name, bio, profession } = req.body;
 
