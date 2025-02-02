@@ -545,47 +545,37 @@ const modules = [
 //     return res.status(500).json({ message: "Server error" });
 //   }
 // });
-
 app.post('/updateprofile', verifyToken, async (req, res) => {
-    console.log('Authorization header:', req.headers['authorization']);  // Log the authorization header
-
-  const { name, bio, profession } = req.body;  // Don't need 'token' from body
+  const { name, bio, profession } = req.body;
 
   try {
-    console.log('Request body:', req.body);  // Log the incoming body
+    const userId = req.user.userId;
 
-    // Find the user using the userId extracted from the token
-    const user = await User.findOne({ userId: req.user.userId });
-    console.log('Searching for user with userId:', req.user.userId);
+    // Ensure that userId is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ message: 'Invalid user ID' });
+    }
 
+    const user = await User.findOne({ _id: mongoose.Types.ObjectId(userId) });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Update user profile fields
-    if (name !== undefined) {
-      user.name = name;  // Update name
-    }
-    if (bio !== undefined) {
-      user.bio = bio;    // Update bio
-    }
-    if (profession !== undefined) {
-      user.profession = profession;  // Update profession
-    }
+    // Update the profile
+    if (name) user.name = name;
+    if (bio) user.bio = bio;
+    if (profession) user.profession = profession;
 
-    // Save the updated user profile
     await user.save();
-    console.log('User profile updated:', user); // Log after saving
 
     return res.status(200).json({ message: "Profile updated successfully", data: user });
 
   } catch (error) {
-    console.error('Error during profile update:', error);  // Log the error
+    console.error('Error during profile update:', error);
     return res.status(500).json({ message: "Server error", error: error.message });
   }
 });
-
 app.post('/habits', verifyToken, createHabit);  // Create a new habit
 app.get('/habits', verifyToken, getHabits);  // Get all habits for a user
 app.post('/habits/track', verifyToken, trackHabitCompletion);  // Track habit completion
