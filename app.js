@@ -549,18 +549,19 @@ const modules = [
 app.put('/updateprofile', verifyToken, async (req, res) => {
   const { name, bio, profession } = req.body;
   try {
-    const user = await user.findOne({ _id: req.user.userId });
-    if (!user) {
+    // Make sure you are using the model correctly
+    const userDoc = await user.findOne({ _id: req.user.userId });
+    if (!userDoc) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    if (name) user.name = name;
-    if (bio) user.bio = bio;
-    if (profession) user.profession = profession;
+    if (name) userDoc.name = name;
+    if (bio) userDoc.bio = bio;
+    if (profession) userDoc.profession = profession;
 
-    await user.save();
+    await userDoc.save();
 
-    return res.status(200).json({ message: "Profile updated successfully", data: user });
+    return res.status(200).json({ message: "Profile updated successfully", data: userDoc });
   } catch (error) {
     return res.status(500).json({ message: "Server error", error: error.message });
   }
