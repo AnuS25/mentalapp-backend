@@ -519,7 +519,7 @@ const modules = [
 // app.get('/api/modules', (req, res) => {
 //   res.json(modules);
 // });
-router.put('/profile', verifyToken, async (req, res) => {
+app.put('/updateprofile', verifyToken, async (req, res) => {
   const { name, bio, profession } = req.body;
 
   // Validate the data (you can add more validation if needed)
