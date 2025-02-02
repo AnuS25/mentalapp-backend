@@ -547,6 +547,8 @@ const modules = [
 // });
 
 app.post('/updateprofile', verifyToken, async (req, res) => {
+    console.log('Authorization header:', req.headers['authorization']);  // Log the authorization header
+
   const { name, bio, profession } = req.body;  // Don't need 'token' from body
 
   try {
@@ -574,8 +576,8 @@ app.post('/updateprofile', verifyToken, async (req, res) => {
     return res.status(200).json({ message: "Profile updated successfully", data: user });
 
   } catch (error) {
-    console.error(error);
-    return res.status(500).json({ message: "Server error" });
+    console.error('Error during profile update:', error);  // Log the error
+    return res.status(500).json({ message: "Server error", error: error.message });
   }
 });
 
