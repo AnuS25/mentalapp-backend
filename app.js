@@ -556,20 +556,20 @@ app.post('/updateprofile', verifyToken, async (req, res) => {
       return res.status(400).json({ message: 'Invalid user ID' });
     }
 
-    const user = await User.findOne({ _id: mongoose.Types.ObjectId(userId) });
+    const User = await user.findOne({ _id: mongoose.Types.ObjectId(userId) });
 
-    if (!user) {
+    if (!User) {
       return res.status(404).json({ message: "User not found" });
     }
 
     // Update the profile
-    if (name) user.name = name;
-    if (bio) user.bio = bio;
-    if (profession) user.profession = profession;
+    if (name) User.name = name;
+    if (bio) User.bio = bio;
+    if (profession) User.profession = profession;
 
-    await user.save();
+    await User.save();
 
-    return res.status(200).json({ message: "Profile updated successfully", data: user });
+    return res.status(200).json({ message: "Profile updated successfully", data: User });
 
   } catch (error) {
     console.error('Error during profile update:', error);
