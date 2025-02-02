@@ -482,6 +482,70 @@ if (!moodHistory.length) {
     res.status(500).json({ error: 'Failed to fetch mood history' });
   }
 });
+const modules = [
+  { 
+    name: 'Exercise', 
+    color: '#64D9EA', 
+    description: 'Get started with daily exercises for 15-30 minutes to stay fit.',
+    icon: '🏋️‍♂️',
+    content: [
+      { type: 'video', title: 'Full Body Workout', url: 'https://example.com/full-body-workout' },
+      { type: 'text', title: 'Exercise Tips', content: 'Start with small exercises like push-ups and squats.' },
+    ]
+  },
+  { 
+    name: 'Get Inspired', 
+    color: '#FFA500', 
+    description: 'Read motivational quotes and stories to boost positivity.',
+    icon: '🌟',
+    content: [
+      { type: 'quote', text: '“Success is not final, failure is not fatal: It is the courage to continue that counts.” - Winston Churchill' },
+      { type: 'story', title: 'The Power of Persistence', content: 'A story about how persistence can help you achieve your goals.' },
+    ]
+  },
+  { 
+    name: 'Deep Work', 
+    color: '#FF6347', 
+    description: 'Focus on uninterrupted tasks to enhance productivity.',
+    icon: '📚',
+    content: [
+      { type: 'tool', title: 'Pomodoro Timer', url: 'https://example.com/pomodoro-timer' },
+      { type: 'text', title: 'Deep Work Tips', content: 'Set clear goals and minimize distractions to stay focused.' },
+    ]
+  },
+  // Add more modules here...
+];
+
+// app.get('/api/modules', (req, res) => {
+//   res.json(modules);
+// });
+router.put('/profile', verifyToken, async (req, res) => {
+  const { name, bio, profession } = req.body;
+
+  // Validate the data (you can add more validation if needed)
+  if (!name && !bio && !profession) {
+    return res.status(400).json({ message: "Nothing to update" });
+  }
+
+  try {
+    // Find the user by ID and update the profile fields
+    const user = await User.findOneAndUpdate(
+      { userId: req.userId }, // Use userId from decoded token
+      { name, bio, profession },
+      { new: true } // Return the updated user
+    );
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.status(200).json({ user }); // Send the updated user details back to the client
+  } catch (error) {
+    console.error("Error updating user profile:", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
 app.post('/updateProfile', async (req, res) => {
     const { token, name, bio, profession } = req.body;
 
@@ -629,13 +693,17 @@ app.post('/api/tracking', verifyToken, async (req, res) => {
     });
 
     await newTracking.save();
+ // Log the user activity for this action
+    const activity = `${userEmail} performed ${req.method} ${req.originalUrl} at ${newTracking.createdAt}`;
+    logUserActivity(activity); // Assuming `logUserActivity` function is defined
 
     res.status(201).json({ message: 'Tracking data saved successfully' });
   } catch (error) {
     console.error('Error saving tracking data:', error);
     res.status(500).json({ error: 'Error saving tracking data', details: error.message });
   }
-}); 
+});
+// GET route to fetch tracking data
 app.get('/api/tracking', verifyToken, async (req, res) => {
   const token = req.headers.authorization?.split(" ")[1];
 
@@ -660,6 +728,15 @@ app.get('/api/tracking', verifyToken, async (req, res) => {
     if (!trackingData || trackingData.length === 0) {
       return res.status(404).json({ error: 'No tracking data found' });
     }
+    const formattedTrackingData = trackingData.map(entry => {
+      return {
+        ...entry.toObject(),
+        createdAt: entry.createdAt.toLocaleString('en-US', { // Format the date
+          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+          hour: '2-digit', minute: '2-digit', second: '2-digit'
+        })
+      };
+    });
 
     res.status(200).json({ trackingData });
   } catch (error) {
