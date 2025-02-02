@@ -16,4 +16,6 @@ const userdetailschema = new mongoose.Schema({
 },{
     collection:"userinfo"
 });
-mongoose.model("userinfo",userdetailschema);
+//mongoose.model("userinfo",userdetailschema);
+const user = mongoose.model("userinfo", userdetailschema); // Use "userinfo" as model name
+module.exports = user; // Export the model as 'user'
