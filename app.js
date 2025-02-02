@@ -545,28 +545,27 @@ const modules = [
 //     return res.status(500).json({ message: "Server error" });
 //   }
 // });
-app.get("/profile", verifyToken,  async(req, res) => {
-  const userId = req.user.userId; 
+// Update user profile (PUT)
+app.put('/updateprofile', verifyToken, async (req, res) => {
+  const { name, bio, profession } = req.body;
   try {
-    const userDetails = await user.findById(userId);
-
-    if (!userDetails) {
-      return res.status(404).send({ status: "error", message: "User not found" });
+    const user = await user.findOne({ _id: req.user.userId });
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
     }
 
-    res.send({
-      status: "ok",
-      message: "User profile fetched successfully",
-      user: {
-        name: userDetails.name,
-        email: userDetails.email,
-        phone: userDetails.phone,
-      }
-    });
+    if (name) user.name = name;
+    if (bio) user.bio = bio;
+    if (profession) user.profession = profession;
+
+    await user.save();
+
+    return res.status(200).json({ message: "Profile updated successfully", data: user });
   } catch (error) {
-    res.status(500).send({ status: "error", message: "Error fetching user profile", error: error.message });
+    return res.status(500).json({ message: "Server error", error: error.message });
   }
 });
+
 app.post('/habits', verifyToken, createHabit);  // Create a new habit
 app.get('/habits', verifyToken, getHabits);  // Get all habits for a user
 app.post('/habits/track', verifyToken, trackHabitCompletion);  // Track habit completion
