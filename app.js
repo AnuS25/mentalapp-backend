@@ -545,35 +545,26 @@ const modules = [
 //     return res.status(500).json({ message: "Server error" });
 //   }
 // });
-app.post('/updateprofile', verifyToken, async (req, res) => {
-  const { name, bio, profession } = req.body;
-
+app.get("/profile", verifyToken,  async(req, res) => {
+  const userId = req.user.userId; 
   try {
-    const userId = req.user.userId;
+    const userDetails = await user.findById(userId);
 
-    // Ensure that userId is a valid ObjectId
-    if (!mongoose.Types.ObjectId.isValid(userId)) {
-      return res.status(400).json({ message: 'Invalid user ID' });
+    if (!userDetails) {
+      return res.status(404).send({ status: "error", message: "User not found" });
     }
 
-    const User = await user.findOne({ _id: mongoose.Types.ObjectId(userId) });
-
-    if (!User) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    // Update the profile
-    if (name) User.name = name;
-    if (bio) User.bio = bio;
-    if (profession) User.profession = profession;
-
-    await User.save();
-
-    return res.status(200).json({ message: "Profile updated successfully", data: User });
-
+    res.send({
+      status: "ok",
+      message: "User profile fetched successfully",
+      user: {
+        name: userDetails.name,
+        email: userDetails.email,
+        phone: userDetails.phone,
+      }
+    });
   } catch (error) {
-    console.error('Error during profile update:', error);
-    return res.status(500).json({ message: "Server error", error: error.message });
+    res.status(500).send({ status: "error", message: "Error fetching user profile", error: error.message });
   }
 });
 app.post('/habits', verifyToken, createHabit);  // Create a new habit
