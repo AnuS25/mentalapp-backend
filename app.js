@@ -683,8 +683,8 @@ app.post('/api/tracking', verifyToken, async (req, res) => {
 
     await newTracking.save();
  // Log the user activity for this action
-    const activity = `${userEmail} performed ${req.method} ${req.originalUrl} at ${newTracking.createdAt}`;
-    logUserActivity(activity); // Assuming `logUserActivity` function is defined
+    //const activity = `${userEmail} performed ${req.method} ${req.originalUrl} at ${newTracking.createdAt}`;
+    //logUserActivity(activity); // Assuming `logUserActivity` function is defined
 
     res.status(201).json({ message: 'Tracking data saved successfully' });
   } catch (error) {
@@ -717,15 +717,15 @@ app.get('/api/tracking', verifyToken, async (req, res) => {
     if (!trackingData || trackingData.length === 0) {
       return res.status(404).json({ error: 'No tracking data found' });
     }
-    const formattedTrackingData = trackingData.map(entry => {
-      return {
-        ...entry.toObject(),
-        createdAt: entry.createdAt.toLocaleString('en-US', { // Format the date
-          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-          hour: '2-digit', minute: '2-digit', second: '2-digit'
-        })
-      };
-    });
+    // const formattedTrackingData = trackingData.map(entry => {
+    //   return {
+    //     ...entry.toObject(),
+    //     createdAt: entry.createdAt.toLocaleString('en-US', { // Format the date
+    //       weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    //       hour: '2-digit', minute: '2-digit', second: '2-digit'
+    //     })
+    //   };
+    // });
 
     res.status(200).json({ trackingData });
   } catch (error) {
