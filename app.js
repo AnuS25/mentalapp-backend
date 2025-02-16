@@ -545,24 +545,43 @@ const modules = [
 //     return res.status(500).json({ message: "Server error" });
 //   }
 // });
-// Update user profile (PUT)
-app.put('/updateprofile', verifyToken, async (req, res) => {
-  const { name, bio, profession } = req.body;
+
+app.post('/updateprofile', verifyToken, async (req, res) => {
+    console.log('Authorization header:', req.headers['authorization']);  // Log the authorization header
+
+  const { name, bio, profession } = req.body;  // Don't need 'token' from body
+
   try {
-    // Make sure you are using the model correctly
-    const userDoc = await user.findOne({ _id: req.user.userId });
-    if (!userDoc) {
+    console.log('Request body:', req.body);  // Log the incoming body
+
+    // Find the user using the userId extracted from the token
+    const user = await User.findOne({ userId: req.user.userId });
+    console.log('Searching for user with userId:', req.user.userId);
+
+
+    if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    if (name) userDoc.name = name;
-    if (bio) userDoc.bio = bio;
-    if (profession) userDoc.profession = profession;
+    // Update user profile fields
+    if (name !== undefined) {
+      user.name = name;  // Update name
+    }
+    if (bio !== undefined) {
+      user.bio = bio;    // Update bio
+    }
+    if (profession !== undefined) {
+      user.profession = profession;  // Update profession
+    }
 
-    await userDoc.save();
+    // Save the updated user profile
+    await user.save();
+    console.log('User profile updated:', user); // Log after saving
 
-    return res.status(200).json({ message: "Profile updated successfully", data: userDoc });
+    return res.status(200).json({ message: "Profile updated successfully", data: user });
+
   } catch (error) {
+    console.error('Error during profile update:', error);  // Log the error
     return res.status(500).json({ message: "Server error", error: error.message });
   }
 });
@@ -658,6 +677,7 @@ app.post('/api/tracking', verifyToken, async (req, res) => {
     return res.status(401).json({ error: 'No token provided' });
   }
 
+
   try {
     const decodedUser = jwt.verify(token, JWT_SECRET);
     const userEmail = decodedUser.email;
@@ -726,11 +746,47 @@ app.get('/api/tracking', verifyToken, async (req, res) => {
     //     })
     //   };
     // });
+    console.log('Fetched tracking data:', trackingData);
 
     res.status(200).json({ trackingData });
   } catch (error) {
     console.error('Error fetching tracking data:', error);
     res.status(500).json({ error: 'Error fetching tracking data', details: error.message });
+  }
+});
+// GET route to fetch the user's tasks
+app.get('/api/tasks', verifyToken, async (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    return res.status(401).json({ error: 'No token provided' });
+  }
+
+  try {
+    const decodedUser = jwt.verify(token, JWT_SECRET);
+    const userEmail = decodedUser.email;
+
+    // Find the user
+    const UserData = await user.findOne({ email: userEmail });
+
+    if (!UserData) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Retrieve user's tasks (you can modify this based on your schema)
+    const userTasks = await Tracking.find({ userId: UserData._id }).sort({ createdAt: -1 }).limit(1);
+
+    if (!userTasks || userTasks.length === 0) {
+      return res.status(404).json({ error: 'No tasks found' });
+    }
+
+    // Assuming 'todoList' is part of the Tracking schema
+    const tasks = userTasks[0].todoList || [];
+
+    res.status(200).json({ tasks });
+  } catch (error) {
+    console.error('Error fetching tasks:', error);
+    res.status(500).json({ error: 'Error fetching tasks', details: error.message });
   }
 });
 
