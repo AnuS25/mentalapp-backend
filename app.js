@@ -755,7 +755,7 @@ app.get('/api/tracking', verifyToken, async (req, res) => {
   }
 });
 // GET route to fetch the user's tasks
-app.get('/api/tasks', verifyToken, async (req, res) => {
+app.get('/tasks', verifyToken, async (req, res) => {
   const token = req.headers.authorization?.split(" ")[1];
 
   if (!token) {
@@ -788,6 +788,35 @@ app.get('/api/tasks', verifyToken, async (req, res) => {
     console.error('Error fetching tasks:', error);
     res.status(500).json({ error: 'Error fetching tasks', details: error.message });
   }
+});
+app.post('/save-reminder', verifyToken, async (req, res) => {
+    const { reminderTime } = req.body;
+    const token = req.headers.authorization?.split(" ")[1];
+
+    if (!token) {
+        return res.status(401).json({ error: 'No token provided' });
+    }
+
+    try {
+        const decodedUser = jwt.verify(token, JWT_SECRET);
+        const userEmail = decodedUser.email;
+
+        // Find the user
+        const UserData = await user.findOne({ email: userEmail });
+
+        if (!UserData) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        // Save the reminder in the user's settings (You could store it in a 'reminders' field)
+        UserData.reminderTime = reminderTime;
+        await UserData.save();
+
+        res.status(200).json({ message: 'Reminder saved successfully!' });
+    } catch (error) {
+        console.error('Error saving reminder:', error);
+        res.status(500).json({ error: 'Error saving reminder', details: error.message });
+    }
 });
 
 //app.l
